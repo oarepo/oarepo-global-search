@@ -112,9 +112,11 @@ def test_facets(app, db, search_clear, identity_simple):
         system_identity,
         {"metadata": {"title": "kkkkkkkkk", "bdescription": "3"}},
     )
-    time.sleep(5)
+
     modela_service.record_cls.index.refresh()
     modelb_service.record_cls.index.refresh()
+    time.sleep(5)
+    
     result = GlobalSearchService(system_identity, {'q': '', 'sort': 'bestmatch', 'page': 1, 'size': 10,  'facets': {"metadata_adescription": ["2"]}}).global_search()
     results = result.to_dict()
     assert len(results["hits"]["hits"]) == 1
