@@ -102,19 +102,19 @@ def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
 def test_common_facet(app, db, search_clear,es_clear, identity_simple):
     modela_record1 = modela_service.create(
         system_identity,
-        {"metadata": {"title": "blah", "adescription": "k"}},
+        {"metadata": {"title": "blah", "adescription": "1"}},
     )
     modela_record2 = modela_service.create(
         system_identity,
-        {"metadata": {"title": "aaaaa", "adescription": "j"}},
+        {"metadata": {"title": "aaaaa", "adescription": "2"}},
     )
     modelb_record1 = modelb_service.create(
         system_identity,
-        {"metadata": {"title": "kkkkkkkkk", "bdescription": "kkkkk"}},
+        {"metadata": {"title": "kkkkkkkkk", "bdescription": "3"}},
     )
     time.sleep(5)
 
-    result = GlobalSearchService(system_identity, {'q': '', 'sort': 'bestmatch', 'page': 1, 'size': 10,  'facets': {"metadata_adescription": ["k"]}}).global_search()
+    result = GlobalSearchService(system_identity, {'q': '', 'sort': 'bestmatch', 'page': 1, 'size': 10,  'facets': {"metadata_adescription": ["2"]}}).global_search()
     results = result.to_dict()
     assert len(results["hits"]["hits"]) == 1
     assert modela_record1.data in results["hits"]["hits"]
