@@ -1,8 +1,10 @@
-import pytest
 import time
+
+import pytest
 from invenio_access.permissions import system_identity
 from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
+
 from oarepo_global_search.services.records.service import GlobalSearchService
 
 

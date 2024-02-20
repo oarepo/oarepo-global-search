@@ -1,6 +1,7 @@
 import os
-from flask_principal import Identity, Need, UserNeed
+
 import pytest
+from flask_principal import Identity, Need, UserNeed
 from invenio_app.factory import create_api
 
 
