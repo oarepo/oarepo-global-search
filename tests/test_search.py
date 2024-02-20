@@ -118,4 +118,3 @@ def test_common_facet(app, db, search_clear, identity_simple):
     results = result.to_dict()
     assert len(results["hits"]["hits"]) == 1
     assert modela_record2.data in results["hits"]["hits"]
-
