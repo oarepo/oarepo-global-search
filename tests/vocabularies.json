@@ -1,0 +1,408 @@
+{
+    "model": {
+        "type": "object",
+        "index-name": "vocabulary-v1.0.0.json",
+        "marshmallow": {
+            "generate": false,
+            "schema-class": "invenio_vocabularies.services.schema.BaseVocabularySchema",
+            "base-classes": [
+                "InvenioBaseRecordSchema"
+            ],
+            "mapping": {}
+        },
+        "package": "invenio_vocabularies",
+        "record-class": "invenio_vocabularies.records.api.Vocabulary",
+        "record-resource-config-class": "invenio_vocabularies.resources.VocabulariesResourceConfig",
+        "record-resource-class": "invenio_vocabularies.resources.VocabulariesResource",
+        "record-permissions-class": "invenio_vocabularies.services.permissions.PermissionPolicy",
+        "record-service-class": "invenio_vocabularies.services.service.VocabulariesService",
+        "record-service-config-class": "invenio_vocabularies.services.service.VocabulariesServiceConfig",
+        "record-search-options-class": "invenio_vocabularies.services.service.VocabularySearchOptions",
+        "properties": {
+            "description": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field": "i18_strings",
+                    "field-class": "ma.fields.Nested",
+                    "validators": [],
+                    "schema-class": "invenio_vocabularies.services.records.schema.DescriptionSchema",
+                    "imports": []
+                },
+                "type": "object",
+                "propertyNames": {
+                    "pattern": "^[a-z]{2}$"
+                },
+                "additionalProperties": {
+                    "type": "str"
+                },
+                "mapping": {
+                    "dynamic": true
+                }
+            },
+            "icon": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field-class": "ma.fields.String",
+                    "validators": [],
+                    "imports": []
+                },
+                "type": "keyword"
+            },
+            "id": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field-class": "ma.fields.String",
+                    "validators": [],
+                    "imports": []
+                },
+                "type": "keyword",
+                "mapping": {
+                    "fields": {
+                        "text": {
+                            "type": "search_as_you_type"
+                        }
+                    }
+                },
+                "sample": {
+                    "skip": true
+                }
+            },
+            "props": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field": "ma.fields.Dict(allow_none=False, keys=fields.Str(), values=fields.Str())",
+                    "field-class": "ma.fields.Nested",
+                    "validators": [],
+                    "schema-class": "invenio_vocabularies.services.records.schema.PropsSchema",
+                    "imports": []
+                },
+                "type": "object",
+                "mapping": {
+                    "dynamic": true
+                },
+                "additionalProperties": {
+                    "type": "keyword"
+                }
+            },
+            "title": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field": "i18_strings",
+                    "field-class": "ma.fields.Nested",
+                    "validators": [],
+                    "schema-class": "invenio_vocabularies.services.records.schema.TitleSchema",
+                    "imports": []
+                },
+                "mapping": {
+                    "dynamic": true,
+                    "properties": {
+                        "en": {
+                            "type": "search_as_you_type",
+                            "copy_to": "title_sort"
+                        }
+                    }
+                },
+                "type": "object",
+                "propertyNames": {
+                    "pattern": "^[a-z]{2}$"
+                },
+                "additionalProperties": {
+                    "type": "str"
+                }
+            },
+            "title_sort": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field-class": "ma.fields.String",
+                    "validators": [],
+                    "imports": []
+                },
+                "type": "keyword",
+                "jsonschema": {
+                    "generate": false
+                }
+            },
+            "created": {
+                "marshmallow": {
+                    "write": false,
+                    "read": true,
+                    "field-class": "ma.fields.String",
+                    "validators": [
+                        "validate_date('%Y:%m:%d')"
+                    ],
+                    "imports": [
+                        {
+                            "import": "oarepo_runtime.services.schema.validation.validate_date"
+                        }
+                    ]
+                },
+                "type": "date",
+                "sample": {
+                    "skip": true
+                }
+            },
+            "updated": {
+                "marshmallow": {
+                    "write": false,
+                    "read": true,
+                    "field-class": "ma.fields.String",
+                    "validators": [
+                        "validate_date('%Y:%m:%d')"
+                    ],
+                    "imports": [
+                        {
+                            "import": "oarepo_runtime.services.schema.validation.validate_date"
+                        }
+                    ]
+                },
+                "type": "date",
+                "sample": {
+                    "skip": true
+                }
+            },
+            "$schema": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field-class": "ma.fields.String",
+                    "validators": [],
+                    "imports": []
+                },
+                "type": "keyword",
+                "sample": {
+                    "skip": true
+                }
+            },
+            "pid": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field-class": "ma.fields.Nested",
+                    "validators": [],
+                    "schema-class": "invenio_vocabularies.services.records.schema.PidSchema",
+                    "imports": []
+                },
+                "type": "object",
+                "properties": {
+                    "pk": {
+                        "marshmallow": {
+                            "field-class": "ma.fields.Integer",
+                            "validators": [],
+                            "imports": []
+                        },
+                        "type": "integer",
+                        "required": true
+                    },
+                    "status": {
+                        "marshmallow": {
+                            "field-class": "ma.fields.String",
+                            "validators": [],
+                            "imports": []
+                        },
+                        "type": "keyword",
+                        "enum": [
+                            "N",
+                            "K",
+                            "R",
+                            "M",
+                            "D"
+                        ],
+                        "required": true
+                    },
+                    "pid_type": {
+                        "marshmallow": {
+                            "field-class": "ma.fields.String",
+                            "validators": [],
+                            "imports": []
+                        },
+                        "type": "keyword"
+                    },
+                    "obj_type": {
+                        "marshmallow": {
+                            "field-class": "ma.fields.String",
+                            "validators": [],
+                            "imports": []
+                        },
+                        "type": "keyword"
+                    }
+                }
+            },
+            "tags": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field-class": "ma.fields.List",
+                    "validators": [],
+                    "imports": []
+                },
+                "type": "array",
+                "items": {
+                    "marshmallow": {
+                        "field-class": "ma.fields.String",
+                        "validators": [],
+                        "imports": []
+                    },
+                    "type": "keyword"
+                }
+            },
+            "type": {
+                "marshmallow": {
+                    "read": false,
+                    "write": false,
+                    "field-class": "ma.fields.Nested",
+                    "validators": [],
+                    "schema-class": "invenio_vocabularies.services.records.schema.TypeSchema",
+                    "imports": []
+                },
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "marshmallow": {
+                            "field-class": "ma.fields.String",
+                            "validators": [],
+                            "imports": []
+                        },
+                        "type": "keyword"
+                    },
+                    "pid_type": {
+                        "marshmallow": {
+                            "field-class": "ma.fields.String",
+                            "validators": [],
+                            "imports": []
+                        },
+                        "type": "keyword"
+                    }
+                }
+            }
+        },
+        "plugins": {
+            "builder": {
+                "disable": [
+                    "jsonschema",
+                    "mapping",
+                    "setup_cfg",
+                    "setup_py",
+                    "pyproject_toml",
+                    "python_structure",
+                    "invenio_record",
+                    "invenio_record_metadata",
+                    "invenio_record_schema",
+                    "invenio_record_permissions",
+                    "invenio_record_search",
+                    "invenio_record_service_config",
+                    "invenio_record_service",
+                    "invenio_record_dumper",
+                    "invenio_record_resource_config",
+                    "invenio_record_resource",
+                    "invenio_views",
+                    "invenio_config",
+                    "invenio_ext",
+                    "invenio_ext_setup_cfg",
+                    "invenio_proxies",
+                    "invenio_record_metadata_alembic_setup_cfg",
+                    "invenio_record_metadata_models_setup_cfg",
+                    "invenio_record_resource_setup_cfg",
+                    "invenio_record_search_setup_cfg",
+                    "invenio_record_jsonschemas_setup_cfg",
+                    "script_sample_data",
+                    "invenio_version",
+                    "model_registration",
+                    "invenio_cli",
+                    "invenio_cli_setup_cfg"
+                ]
+            }
+        },
+        "record-prefix": "InvenioVocabularies",
+        "package-base": "invenio_vocabularies",
+        "package-base-upper": "INVENIO_VOCABULARIES",
+        "kebap-package": "invenio-vocabularies",
+        "package-path": "invenio_vocabularies",
+        "schema-version": "1.0.0",
+        "schema-name": "invenio_vocabularies-1.0.0.json",
+        "schema-file": "invenio_vocabularies/records/jsonschemas/invenio_vocabularies-1.0.0.json",
+        "mapping-package": "invenio_vocabularies.records.mappings",
+        "jsonschemas-package": "invenio_vocabularies.records.jsonschemas",
+        "mapping-file": "invenio_vocabularies/records/mappings/os-v2/invenio_vocabularies/invenio_vocabularies-1.0.0.json",
+        "schema-server": "http://localhost/schemas/",
+        "collection-url": "/invenio-vocabularies/",
+        "model-name": "invenio_vocabularies",
+        "saved-model-file": "invenio_vocabularies/models/model.json",
+        "oarepo-models-setup-cfg": "invenio_vocabularies",
+        "extension-suffix": "invenio_vocabularies",
+        "profile-package": "records",
+        "record-prefix-snake": "invenio_vocabularies",
+        "record-resources-package": "invenio_vocabularies.resources.records",
+        "record-services-package": "invenio_vocabularies.services.records",
+        "record-records-package": "invenio_vocabularies.records",
+        "config-package": "invenio_vocabularies.config",
+        "config-dummy-class": "invenio_vocabularies.config.DummyClass",
+        "config-resource-config-key": "INVENIO_VOCABULARIES_RESOURCE_CONFIG_INVENIO_VOCABULARIES",
+        "config-resource-class-key": "INVENIO_VOCABULARIES_RESOURCE_CLASS_INVENIO_VOCABULARIES",
+        "config-service-config-key": "INVENIO_VOCABULARIES_SERVICE_CONFIG_INVENIO_VOCABULARIES",
+        "config-service-class-key": "INVENIO_VOCABULARIES_SERVICE_CLASS_INVENIO_VOCABULARIES",
+        "config-resource-register-blueprint-key": "INVENIO_VOCABULARIES_REGISTER_BLUEPRINT",
+        "ext-class": "invenio_vocabularies.ext.InvenioVocabulariesExt",
+        "flask-extension-name": "invenio_vocabularies",
+        "cli-function": "invenio_vocabularies.cli.group",
+        "proxies-current-resource": "invenio_vocabularies.proxies.current_resource",
+        "proxies-current-service": "invenio_vocabularies.proxies.current_service",
+        "record-metadata-class": "invenio_vocabularies.records.models.InvenioVocabulariesMetadata",
+        "record-metadata-table-name": "inveniovocabularies_metadata",
+        "record-mapping-setup-cfg": "invenio_vocabularies",
+        "record-jsonschemas-setup-cfg": "invenio_vocabularies",
+        "record-api-blueprints-setup-cfg": "invenio_vocabularies",
+        "record-blueprints-setup-cfg": "invenio_vocabularies",
+        "record-service-config-generate-links": true,
+        "record-schema-class": "invenio_vocabularies.services.records.schema.InvenioVocabulariesSchema",
+        "record-schema-metadata-class": "invenio_vocabularies.services.records.schema.InvenioVocabulariesMetadataSchema",
+        "record-dumper-class": "invenio_vocabularies.records.dumper.InvenioVocabulariesDumper",
+        "record-facets-class": "invenio_vocabularies.services.records.facets.Test",
+        "record-schema-metadata-alembic": "invenio_vocabularies",
+        "record-schema-metadata-setup-cfg": "invenio_vocabularies",
+        "flask-commands-setup-cfg": "invenio_vocabularies",
+        "record-resource-blueprint-name": "InvenioVocabularies",
+        "create-blueprint-from-app": "invenio_vocabularies.views.create_blueprint_from_app_invenio_vocabularies",
+        "invenio-config-extra-code": "",
+        "invenio-ext-extra-code": "",
+        "invenio-proxies-extra-code": "",
+        "invenio-record-extra-code": "",
+        "invenio-record-dumper-extra-code": "",
+        "invenio-record-facets-extra-code": "",
+        "invenio-record-metadata-extra-code": "",
+        "invenio-record-object-schema-extra-code": "",
+        "invenio-record-permissions-extra-code": "",
+        "invenio-record-resource-extra-code": "",
+        "invenio-record-resource-config-extra-code": "",
+        "invenio-record-schema-extra-code": "",
+        "invenio-record-search-options-extra-code": "",
+        "invenio-record-service-extra-code": "",
+        "invenio-record-service-config-extra-code": "",
+        "invenio-version-extra-code": "",
+        "invenio-views-extra-code": "",
+        "generate-record-pid-field": true,
+        "record-dumper-extensions": [],
+        "script-import-sample-data": "data/sample_data.yaml",
+        "service-id": "invenio_vocabularies",
+        "record-resource-bases": [
+            "invenio_records_resources.resources.RecordResource"
+        ],
+        "record-resource-config-bases": [
+            "invenio_records_resources.resources.RecordResourceConfig"
+        ],
+        "record-service-bases": [
+            "invenio_records_resources.services.RecordService"
+        ],
+        "record-bases": [
+            "invenio_records_resources.records.api.Record"
+        ],
+        "record-service-config-bases": [
+            "invenio_records_resources.services.RecordServiceConfig"
+        ]
+    }
+}

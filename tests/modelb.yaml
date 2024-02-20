@@ -1,0 +1,12 @@
+record:
+    use: invenio
+    module:
+        qualified: modelb
+    properties:
+        metadata:
+            properties:
+                title: keyword
+                bdescription: keyword
+
+settings:
+    schema-server: 'local://'
