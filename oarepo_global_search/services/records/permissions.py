@@ -1,6 +1,5 @@
 from invenio_records_permissions import RecordPermissionPolicy
 
-from invenio_records_permissions.generators import SystemProcess, AnyUser
 
 class GlobalSearchPermissionPolicy(RecordPermissionPolicy):
     """modela.records.api.ModelaRecord permissions.

@@ -7,7 +7,6 @@ from invenio_records_resources.services.records.results import (
 class GlobalSearchResultList(BaseRecordList):
     services = []
 
-
     @property
     def hits(self):
         """Iterator over the hits."""
@@ -15,7 +14,7 @@ class GlobalSearchResultList(BaseRecordList):
         hits_array = []
         order = []
         for hit in self._results:
-            #log order
+            # log order
             order.append(hit.id)
 
             for service_dict in self.services:
@@ -42,14 +41,16 @@ class GlobalSearchResultList(BaseRecordList):
                 self._identity,
                 hits,
                 self._params,
-                links_tpl=LinksTemplate(service.config.links_search, context={"args": self._params}),
+                links_tpl=LinksTemplate(
+                    service.config.links_search, context={"args": self._params}
+                ),
                 links_item_tpl=service.links_item_tpl,
                 expandable_fields=service.expandable_fields,
                 expand=self._expand,
             )
             records.extend(list(results))
 
-        sorted_hits = sorted(records, key=lambda x: order.index(x['id']))
+        sorted_hits = sorted(records, key=lambda x: order.index(x["id"]))
 
         for hit in sorted_hits:
             yield hit

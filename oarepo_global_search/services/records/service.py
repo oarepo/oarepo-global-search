@@ -1,66 +1,38 @@
-from invenio_records_resources.services import RecordService as InvenioRecordService
-from flask import current_app
-from invenio_base.utils import obj_or_import_string
-import importlib_metadata
-from invenio_records_resources.proxies import current_service_registry
-# from global_search.proxies import current_service as search_service
-from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
-from oarepo_runtime.services.results import RecordList
+from invenio_records_resources.records.api import Record
 from invenio_records_resources.records.systemfields import IndexField
+from invenio_records_resources.services import RecordService as InvenioRecordService
 from invenio_records_resources.services import (
     RecordServiceConfig as InvenioRecordServiceConfig,
 )
-import time
 
+# from global_search.proxies import current_service as search_service
+from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
+
+from oarepo_global_search.services.records.permissions import (
+    GlobalSearchPermissionPolicy,
+)
+
+from ...proxies import current_global_search
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
-from invenio_records_resources.records.api import Record
-from oarepo_global_search.services.records.permissions import GlobalSearchPermissionPolicy
 
 
 class GlobalSearchService(InvenioRecordService):
     """GlobalSearchRecord service."""
 
-    def __init__(self, identity, params, **kwargs):
-        self.identity = identity
-        self.params = params
-        # self.__super__(**kwargs)
-
-    def get_model_services(self):
-        services = []
-        models = []
-        model_services = []
-        import copy
-
-        # get all services
-        for var in current_service_registry._services:
-            services.append(current_service_registry._services[var])
-
-        # get all model_services }todo dedeni
-        for var in current_app.config:
-            if var.endswith("SERVICE_CLASS") and var != "GLOBAL_SEARCH_RECORD_SERVICE_CLASS":
-                models.append(current_app.config[var])
-
-        # get search services for models
-
-        for s in services:
-            if s.__class__ in models:
-                model_services.append(s)
-
-        return model_services
+    def __init__(self):
+        super().__init__(None)
 
     def indices(self):
-        services = self.get_model_services()
         indices = []
-        for s in services:
+        for s in current_global_search.model_services:
             indices.append(s.record_cls.index.search_alias)
         return indices
 
     @property
     def service_mapping(self):
-        services = self.get_model_services()
         service_mapping = []
-        for s in services:
+        for s in current_global_search.model_services:
             service_mapping.append({s: s.record_cls.schema.value})
         return service_mapping
 
@@ -69,87 +41,78 @@ class GlobalSearchService(InvenioRecordService):
         Record.index = IndexField(self.indices())
         GlobalSearchResultList.services = self.service_mapping
 
-        config_class = type("GlobalSearchServiceConfig",
-                            (PermissionsPresetsConfigMixin, InvenioRecordServiceConfig),
-                            {"PERMISSIONS_PRESETS": ["everyone"],
-                             "base_permission_policy_cls": GlobalSearchPermissionPolicy,
-                             "result_list_cls": GlobalSearchResultList,
-                             "record_cls" : Record
-
-                             }
-                            )
+        config_class = type(
+            "GlobalSearchServiceConfig",
+            (PermissionsPresetsConfigMixin, InvenioRecordServiceConfig),
+            {
+                "PERMISSIONS_PRESETS": ["everyone"],
+                "base_permission_policy_cls": GlobalSearchPermissionPolicy,
+                "result_list_cls": GlobalSearchResultList,
+                "record_cls": Record,
+            },
+        )
         return config_class()
 
-    def global_search(self):
-        identity = self.identity
-        params = self.params
+    @config.setter
+    def config(self, value):
+        pass
 
-        model_services = []
-        models = []
+    def global_search(self, identity, params):
 
-        services = self.get_model_services()
+        model_services = {}
 
-        for var in current_app.config:
-            if var.endswith("SERVICE_CLASS") and var != "GLOBAL_SEARCH_RECORD_SERVICE_CLASS":
-                models.append(current_app.config[var])
-
-        for s in services:
-            if s.__class__ in models:
-                model_services.append({s: {}})
-
-        #check if search is possible
-        for ms in model_services:
-            service = list(ms.keys())[0]
+        # check if search is possible
+        for service in current_global_search.model_services:
             try:
-                service.create_search(identity= identity, record_cls=service.record_cls, search_opts=service.config.search)
-                ms[service]["record_cls"] =  service.record_cls
-                ms[service]["search_opts"] = service.config.search
-                ms[service]["schema"] = service.record_cls.schema.value
+                service.create_search(
+                    identity=identity,
+                    record_cls=service.record_cls,
+                    search_opts=service.config.search,
+                )
+                service_dict = {
+                    "record_cls": service.record_cls,
+                    "search_opts": service.config.search,
+                    "schema": service.record_cls.schema.value,
+                }
+                model_services[service] = service_dict
             except Exception as e:
                 print(e)
 
+        model_services = {
+            service: v
+            for service, v in model_services.items()
+            if not hasattr(service, "check_permission")
+            or service.check_permission(identity, "search")
+        }
+        # get queries
+        queries_list = {}
+        for service, service_dict in model_services.items():
+            query = service.search_request(
+                identity=identity,
+                params=params,
+                record_cls=service_dict["record_cls"],
+                search_opts=service_dict["search_opts"],
+            )
+            queries_list[service_dict["schema"]] = query.to_dict()
 
-        #check permissions
-        for ms in model_services:
-            service = list(ms.keys())[0]
-            if not service.check_permission(identity, "search"):
-                model_services.remove(ms)
-
-        #get queries
-        queries_list = []
-        for ms in model_services:
-            service = list(ms.keys())[0]
-            query = service.search_request(identity=identity, params=params, record_cls=ms[service]["record_cls"], search_opts=ms[service]["search_opts"])
-            queries_list.append({ms[service]["schema"]: query.to_dict()})
-
-        #merge query
+        # merge query
         combined_query = {
-            "query": {
-                "bool": {
-                    "should": [], "minimum_should_match": 1
-                }
-            },
+            "query": {"bool": {"should": [], "minimum_should_match": 1}},
             "aggs": {},
             "post_filter": {},
-            "sort": []
+            "sort": [],
         }
-        for query_dict in queries_list:
-            schema_name, query_data = list(query_dict.items())[0]
-            schema_query = query_data.get('query', {})
-            combined_query["query"]["bool"]["should"].append({
-                "bool": {
-                    "must": [
-                        {"term": {"$schema": schema_name}},
-                        schema_query
-                    ]
-                }
-            })
+        for schema_name, query_data in queries_list.items():
+            schema_query = query_data.get("query", {})
+            combined_query["query"]["bool"]["should"].append(
+                {"bool": {"must": [{"term": {"$schema": schema_name}}, schema_query]}}
+            )
 
-            if 'aggs' in query_data:
-                for agg_key, agg_value in query_data['aggs'].items():
+            if "aggs" in query_data:
+                for agg_key, agg_value in query_data["aggs"].items():
                     combined_query["aggs"][agg_key] = agg_value
             if "post_filter" in query_data:
-                for post_key, post_value in query_data['post_filter'].items():
+                for post_key, post_value in query_data["post_filter"].items():
                     combined_query["post_filter"][post_key] = post_value
             if "sort" in query_data:
                 combined_query["sort"].extend(query_data["sort"])
@@ -160,4 +123,3 @@ class GlobalSearchService(InvenioRecordService):
         hits = self.search(identity, params=combined_query)
 
         return hits
-

@@ -1,6 +1,5 @@
 import time
 
-import pytest
 from invenio_access.permissions import system_identity
 from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
@@ -23,7 +22,10 @@ def test_description_search(app, db, search_clear, identity_simple):
     )
     time.sleep(1)
 
-    result = GlobalSearchService(system_identity,{'q': 'jej', 'sort': 'bestmatch', 'page': 1, 'size': 10, 'facets': {}} ).global_search()
+    result = GlobalSearchService().global_search(
+        system_identity,
+        {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
+    )
     results = result.to_dict()
 
     assert len(results["hits"]["hits"]) == 1
@@ -48,7 +50,10 @@ def test_basic_search(app, db, search_clear, identity_simple):
     )
     time.sleep(1)
 
-    result = GlobalSearchService(system_identity,{'q': 'blah', 'sort': 'bestmatch', 'page': 1, 'size': 10, 'facets': {}} ).global_search()
+    result = GlobalSearchService().global_search(
+        system_identity,
+        {"q": "blah", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
+    )
     results = result.to_dict()
 
     assert len(results["hits"]["hits"]) == 2
@@ -73,10 +78,14 @@ def test_zero_hits(app, db, search_clear, identity_simple):
     )
     time.sleep(1)
 
-    result = GlobalSearchService(system_identity,{'q': 'jej', 'sort': 'bestmatch', 'page': 1, 'size': 10, 'facets': {}} ).global_search()
+    result = GlobalSearchService().global_search(
+        system_identity,
+        {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
+    )
     results = result.to_dict()
 
     assert len(results["hits"]["hits"]) == 0
+
 
 def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
     modela_record1 = modela_service.create(
@@ -93,11 +102,15 @@ def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
     )
     time.sleep(1)
 
-    result = GlobalSearchService(system_identity,{'q': 'blah', 'sort': 'bestmatch', 'page': 1, 'size': 10, 'facets': {}} ).global_search()
+    result = GlobalSearchService().global_search(
+        system_identity,
+        {"q": "blah", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
+    )
     results = result.to_dict()
 
     assert len(results["hits"]["hits"]) == 2
     assert modelb_record1.data not in results["hits"]["hits"]
+
 
 def test_facets(app, db, search_clear, identity_simple):
     modela_record1 = modela_service.create(
@@ -116,8 +129,17 @@ def test_facets(app, db, search_clear, identity_simple):
     modela_service.record_cls.index.refresh()
     modelb_service.record_cls.index.refresh()
     time.sleep(5)
-    
-    result = GlobalSearchService(system_identity, {'q': '', 'sort': 'bestmatch', 'page': 1, 'size': 10,  'facets': {"metadata_adescription": ["2"]}}).global_search()
+
+    result = GlobalSearchService().global_search(
+        system_identity,
+        {
+            "q": "",
+            "sort": "bestmatch",
+            "page": 1,
+            "size": 10,
+            "facets": {"metadata_adescription": ["2"]},
+        },
+    )
     results = result.to_dict()
     assert len(results["hits"]["hits"]) == 1
     assert modela_record2.data in results["hits"]["hits"]
