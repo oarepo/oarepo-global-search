@@ -43,7 +43,7 @@ class OARepoGlobalSearch(object):
             service_id = (
                 model.get("model", {}).get("service-config", {}).get("service-id")
             )
-            if service_id:
+            if service_id and service_id in current_service_registry._services:
                 ret.append(current_service_registry.get(service_id))
         return ret
 
