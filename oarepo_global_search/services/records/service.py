@@ -120,7 +120,6 @@ class GlobalSearchService(InvenioRecordService):
             if "sort" in query_data:
                 combined_query["sort"].extend(query_data["sort"])
 
-        print("\n" + json.dumps(combined_query, indent=4))
         combined_query = {"json": combined_query}
 
         self.config.search.params_interpreters_cls.append(GlobalSearchStrParam)
