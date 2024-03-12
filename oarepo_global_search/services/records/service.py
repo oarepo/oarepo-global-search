@@ -1,3 +1,6 @@
+import copy
+import json
+
 from invenio_records_resources.records.api import Record
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.services import RecordService as InvenioRecordService
@@ -89,7 +92,7 @@ class GlobalSearchService(InvenioRecordService):
         for service, service_dict in model_services.items():
             query = service.search_request(
                 identity=identity,
-                params=params,
+                params=copy.deepcopy(params),
                 record_cls=service_dict["record_cls"],
                 search_opts=service_dict["search_opts"],
             )
@@ -117,6 +120,7 @@ class GlobalSearchService(InvenioRecordService):
             if "sort" in query_data:
                 combined_query["sort"].extend(query_data["sort"])
 
+        print("\n" + json.dumps(combined_query, indent=4))
         combined_query = {"json": combined_query}
 
         self.config.search.params_interpreters_cls.append(GlobalSearchStrParam)
