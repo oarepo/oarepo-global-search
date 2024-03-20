@@ -8,9 +8,10 @@ if [ -d .venv-builder ] ; then
     rm -rf .venv-builder
 fi
 
-python3 -m venv .venv-builder
+python3.9 -m venv .venv-builder
 .venv-builder/bin/pip install -U setuptools pip wheel
-.venv-builder/bin/pip install -e .
+.venv-builder/bin/pip install oarepo-model-builder
+
 
 
 BUILDER=.venv-builder/bin/oarepo-compile-model
@@ -34,6 +35,7 @@ source .venv-tests/bin/activate
 pip install -U setuptools pip wheel
 pip install pyyaml opensearch-dsl
 pip install "oarepo[tests]==${OAREPO_VERSION}.*"
+pip install oarepo-ui
 pip install -e model-a
 pip install -e model-b
 
