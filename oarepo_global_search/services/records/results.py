@@ -19,7 +19,6 @@ class GlobalSearchResultList(BaseRecordList):
 
             for service_dict in self.services:
                 for service, schema in service_dict.items():
-
                     if hit["$schema"] == schema:
                         schema_exists = False
                         for s in hits_array:

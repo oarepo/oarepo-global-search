@@ -62,8 +62,8 @@ def test_basic_search(app, db, search_clear, identity_simple):
     assert modelb_record1.data in results["hits"]["hits"]
     assert modela_record1.data in results["hits"]["hits"]
 
-def test_links(app, db, search_clear, identity_simple):
 
+def test_links(app, db, search_clear, identity_simple):
     modelb_record1 = modelb_service.create(
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "blah"}},
@@ -76,8 +76,13 @@ def test_links(app, db, search_clear, identity_simple):
     )
     results = result.to_dict()
 
-    assert results["links"]["self"] == 'https://127.0.0.1:5000/api/search?page=1&size=25&sort=newest'
-    assert results["hits"]["hits"][0]["links"]["self"].startswith('https://127.0.0.1:5000/api/modelb/')
+    assert (
+        results["links"]["self"]
+        == "https://127.0.0.1:5000/api/search?page=1&size=25&sort=newest"
+    )
+    assert results["hits"]["hits"][0]["links"]["self"].startswith(
+        "https://127.0.0.1:5000/api/modelb/"
+    )
 
 
 def test_zero_hits(app, db, search_clear, identity_simple):

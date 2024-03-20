@@ -1,11 +1,11 @@
+import copy
+
 from invenio_records_resources.records.api import Record
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.services import RecordService as InvenioRecordService
 from invenio_records_resources.services import (
     RecordServiceConfig as InvenioRecordServiceConfig,
 )
-import copy
-
 from invenio_records_resources.services import pagination_links
 from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
 
@@ -51,7 +51,7 @@ class GlobalSearchService(InvenioRecordService):
                 "result_list_cls": GlobalSearchResultList,
                 "record_cls": Record,
                 # todo is there a use case where this would affect any other links??
-                "links_search": pagination_links('{+api}/search{?args*}')
+                "links_search": pagination_links("{+api}/search{?args*}"),
             },
         )
         return config_class()
@@ -61,7 +61,6 @@ class GlobalSearchService(InvenioRecordService):
         pass
 
     def global_search(self, identity, params):
-
         model_services = {}
 
         # check if search is possible
@@ -125,6 +124,8 @@ class GlobalSearchService(InvenioRecordService):
         self.config.search.params_interpreters_cls.append(GlobalSearchStrParam)
         hits = self.search(identity, params=combined_query)
 
-        del hits._links_tpl.context["args"]["json"] #to get rid of the json arg from url
+        del hits._links_tpl.context["args"][
+            "json"
+        ]  # to get rid of the json arg from url
 
         return hits
