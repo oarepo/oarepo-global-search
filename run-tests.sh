@@ -13,7 +13,6 @@ python3 -m venv .venv-builder
 .venv-builder/bin/pip install oarepo-model-builder
 
 
-
 BUILDER=.venv-builder/bin/oarepo-compile-model
 
 

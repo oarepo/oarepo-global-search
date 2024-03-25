@@ -1,4 +1,5 @@
 import copy
+import json
 
 from invenio_records_resources.records.api import Record
 from invenio_records_resources.records.systemfields import IndexField
