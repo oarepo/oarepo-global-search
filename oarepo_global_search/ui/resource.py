@@ -12,5 +12,7 @@ class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
         "search": "global_search_ui.Search",
     }
 
+    application_id = "global_search"
+
 class GlobalSearchUIResource(RecordsUIResource):
     pass
