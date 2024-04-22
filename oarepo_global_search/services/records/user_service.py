@@ -9,5 +9,6 @@ class GlobalUserSearchService(GlobalSearchService):
         indices = []
         for s in current_global_search.model_services:
             indices.append(s.record_cls.index.search_alias)
-            indices.append(s.draft_cls.index.search_alias)
+            if getattr(s, "draft_cls", None):
+                indices.append(s.draft_cls.index.search_alias)
         return indices
