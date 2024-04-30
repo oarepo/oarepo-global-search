@@ -13,6 +13,8 @@ from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
+from flask import current_app
+from invenio_base.utils import obj_or_import_string
 
 from ...proxies import current_global_search
 from .params import GlobalSearchStrParam
@@ -38,6 +40,7 @@ class GlobalSearchService(InvenioRecordService):
             service_mapping.append({s: s.record_cls.schema.value})
         return service_mapping
 
+
     @property
     def config(self):
         Record.index = IndexField(self.indices())
@@ -53,6 +56,7 @@ class GlobalSearchService(InvenioRecordService):
                 "record_cls": Record,
                 # todo is there a use case where this would affect any other links??
                 "links_search": pagination_links("{+api}/search{?args*}"),
+                "url_prefix": "/search",
             },
         )
         return config_class()

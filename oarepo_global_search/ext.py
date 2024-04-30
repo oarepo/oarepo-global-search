@@ -6,6 +6,7 @@ from importlib_metadata import entry_points
 from invenio_base.utils import obj_or_import_string
 from invenio_records_resources.proxies import current_service_registry
 
+from oarepo_global_search import config
 from oarepo_global_search.resources.records.config import (
     GlobalSearchResourceConfig,
     GlobalUserSearchResourceConfig,
@@ -13,7 +14,7 @@ from oarepo_global_search.resources.records.config import (
 from oarepo_global_search.resources.records.resource import GlobalSearchResource
 from oarepo_global_search.services.records.service import GlobalSearchService
 from oarepo_global_search.services.records.user_service import GlobalUserSearchService
-from oarepo_global_search.ui.resource import GlobalSearchUIResource, GlobalSearchUIResourceConfig
+from oarepo_global_search.ui.config import GlobalSearchUIResource, GlobalSearchUIResourceConfig
 
 
 class OARepoGlobalSearch(object):
@@ -63,9 +64,8 @@ class OARepoGlobalSearch(object):
             config=GlobalSearchUIResourceConfig()
         )
 
-    #
-    # @cached_property
-    # def service_records(self):
-    #     return config.MODELA_RECORD_SERVICE_CLASS(
-    #         config=config.MODELA_RECORD_SERVICE_CONFIG(),
-    #     )
+    @functools.cached_property
+    def service_records(self):
+        return config.GLOBAL_SEARCH_RECORD_SERVICE_CLASS(
+            # config=config.GLOBAL_SEARCH_RECORD_SERVICE_CONFIG(),
+        )

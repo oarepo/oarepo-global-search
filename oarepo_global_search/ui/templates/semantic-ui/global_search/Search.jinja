@@ -2,10 +2,7 @@
 {%- extends config.BASE_TEMPLATE %}
 {%- set title = _("Search results") %}
 
-{%- block javascript %}
-    {{ super() }}
-    {{ webpack['global_search.js'] }}
-{%- endblock %}
+
 
 {%- block page_body %}
 <div class="ui main container">
