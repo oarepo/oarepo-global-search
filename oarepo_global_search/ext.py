@@ -59,9 +59,9 @@ class OARepoGlobalSearch(object):
         self.global_user_search_resource = GlobalSearchResource(
             config=GlobalUserSearchResourceConfig(), service=GlobalUserSearchService()
         )
-        self.global_search_ui_resource = GlobalSearchUIResource(
-            config=GlobalSearchUIResourceConfig()
-        )
+        # self.global_search_ui_resource = GlobalSearchUIResource(
+        #     config=GlobalSearchUIResourceConfig()
+        # )
 
     @functools.cached_property
     def service_records(self):
