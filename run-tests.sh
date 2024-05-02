@@ -36,6 +36,7 @@ pip install -U setuptools pip wheel
 pip install pyyaml opensearch-dsl
 pip install "oarepo[tests]==${OAREPO_VERSION}.*"
 pip install oarepo-ui
+pip install -e .
 pip install -e model-a
 pip install -e model-b
 
