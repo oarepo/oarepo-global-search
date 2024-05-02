@@ -14,7 +14,7 @@ from oarepo_global_search.resources.records.config import (
 from oarepo_global_search.resources.records.resource import GlobalSearchResource
 from oarepo_global_search.services.records.service import GlobalSearchService
 from oarepo_global_search.services.records.user_service import GlobalUserSearchService
-from oarepo_global_search.ui.config import GlobalSearchUIResource, GlobalSearchUIResourceConfig
+# from oarepo_global_search.ui.config import GlobalSearchUIResource, GlobalSearchUIResourceConfig
 
 class OARepoGlobalSearch(object):
     """OARepo DOI extension."""
