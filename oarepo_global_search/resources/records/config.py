@@ -29,7 +29,7 @@ class GlobalSearchResourceConfig(RecordResourceConfig):
             **super().response_handlers,
             **entrypoint_response_handlers,
         }
-    
+
 class GlobalUserSearchResourceConfig(RecordResourceConfig):
     blueprint_name = "global_user_search"
     url_prefix = "/user/search"

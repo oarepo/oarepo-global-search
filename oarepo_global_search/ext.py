@@ -14,7 +14,7 @@ from oarepo_global_search.resources.records.config import (
 from oarepo_global_search.resources.records.resource import GlobalSearchResource
 from oarepo_global_search.services.records.service import GlobalSearchService
 from oarepo_global_search.services.records.user_service import GlobalUserSearchService
-# from oarepo_global_search.ui.config import GlobalSearchUIResource, GlobalSearchUIResourceConfig
+from oarepo_global_search.ui.config import GlobalSearchUIResource, GlobalSearchUIResourceConfig
 
 class OARepoGlobalSearch(object):
     """OARepo DOI extension."""
@@ -59,9 +59,9 @@ class OARepoGlobalSearch(object):
         self.global_user_search_resource = GlobalSearchResource(
             config=GlobalUserSearchResourceConfig(), service=GlobalUserSearchService()
         )
-        # self.global_search_ui_resource = GlobalSearchUIResource(
-        #     config=GlobalSearchUIResourceConfig()
-        # )
+        self.global_search_ui_resource = GlobalSearchUIResource(
+            config=GlobalSearchUIResourceConfig()
+        )
 
     @functools.cached_property
     def service_records(self):
