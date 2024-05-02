@@ -50,7 +50,7 @@ class GlobalSearchService(InvenioRecordService):
                 "base_permission_policy_cls": GlobalSearchPermissionPolicy,
                 "result_list_cls": GlobalSearchResultList,
                 "record_cls": Record,
-                # todo is there a use case where this would affect any other links??
+                "url_prefix": "/search",
                 "links_search": pagination_links("{+api}/search{?args*}"),
             },
         )
