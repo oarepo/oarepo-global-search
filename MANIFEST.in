@@ -1,1 +1,23 @@
 exclude tests/*
+include *.rst
+include *.md
+include *.sh
+include *.txt
+include *.lock
+recursive-include oarepo_global_search *.gitkeep
+recursive-include oarepo_global_search *.jsx *.less *.json
+recursive-include oarepo_global_search *.png *.svg
+recursive-include oarepo_global_search *.css
+recursive-include oarepo_global_search *.lock
+recursive-exclude oarepo_global_search *.DS_Store
+recursive-include oarepo_global_search *.yaml
+recursive-include oarepo_global_search *.html
+recursive-include oarepo_global_search *.jinja
+recursive-include oarepo_global_search *.jinja2
+recursive-include oarepo_global_search *.js
+recursive-include oarepo_global_search *.jsx
+recursive-include oarepo_global_search *.overrides
+recursive-include oarepo_global_search *.variables
+recursive-include oarepo_global_search *.po
+recursive-include oarepo_global_search *.mo
+recursive-include oarepo_global_search *.pot
