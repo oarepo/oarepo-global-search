@@ -14,7 +14,11 @@ from oarepo_global_search.resources.records.config import (
 from oarepo_global_search.resources.records.resource import GlobalSearchResource
 from oarepo_global_search.services.records.service import GlobalSearchService
 from oarepo_global_search.services.records.user_service import GlobalUserSearchService
-from oarepo_global_search.ui.config import GlobalSearchUIResource, GlobalSearchUIResourceConfig
+from oarepo_global_search.ui.config import (
+    GlobalSearchUIResource,
+    GlobalSearchUIResourceConfig,
+)
+
 
 class OARepoGlobalSearch(object):
     """OARepo DOI extension."""
@@ -33,7 +37,8 @@ class OARepoGlobalSearch(object):
         self.init_resources(app)
         app.extensions["global_search"] = self
 
-    @functools.cached_property
+    # @functools.cached_property
+    @property
     def model_services(self):
         # load all models from json files registered in oarepo.ui entry point
         ret = []
