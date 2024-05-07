@@ -1,7 +1,7 @@
-from invenio_records_resources.resources.records.config import RecordResourceConfig
 from flask import current_app
-from invenio_base.utils import obj_or_import_string
 from flask_resources import ResponseHandler
+from invenio_base.utils import obj_or_import_string
+from invenio_records_resources.resources.records.config import RecordResourceConfig
 
 
 class GlobalSearchResourceConfig(RecordResourceConfig):
@@ -29,6 +29,7 @@ class GlobalSearchResourceConfig(RecordResourceConfig):
             **super().response_handlers,
             **entrypoint_response_handlers,
         }
+
 
 class GlobalUserSearchResourceConfig(RecordResourceConfig):
     blueprint_name = "global_user_search"

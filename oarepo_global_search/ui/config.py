@@ -1,6 +1,6 @@
-from oarepo_ui.resources import RecordsUIResourceConfig, RecordsUIResource
 from flask import current_app
 from invenio_base.utils import obj_or_import_string
+from oarepo_ui.resources import RecordsUIResource, RecordsUIResourceConfig
 
 
 class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
@@ -23,6 +23,7 @@ class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
             record_api = obj_or_import_string(definition["records_api"])
             default_components[record_api.schema.value] = ui_resource.search_component
         return default_components
+
 
 class GlobalSearchUIResource(RecordsUIResource):
     pass
