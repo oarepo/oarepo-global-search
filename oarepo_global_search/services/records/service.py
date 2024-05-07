@@ -60,7 +60,7 @@ class GlobalSearchService(InvenioRecordService):
     def config(self, value):
         pass
 
-    def global_search(self, identity, params):
+    def global_search(self, identity, params, *args, **kwargs):
         model_services = {}
 
         # check if search is possible
@@ -84,7 +84,7 @@ class GlobalSearchService(InvenioRecordService):
             service: v
             for service, v in model_services.items()
             if not hasattr(service, "check_permission")
-            or service.check_permission(identity, "search")
+            or service.check_permission(identity, "search", **kwargs)
         }
         # get queries
         queries_list = {}
