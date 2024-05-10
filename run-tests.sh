@@ -8,7 +8,7 @@ if [ -d .venv-builder ] ; then
     rm -rf .venv-builder
 fi
 
-python3.10 -m venv .venv-builder
+python3 -m venv .venv-builder
 .venv-builder/bin/pip install -U setuptools pip wheel
 .venv-builder/bin/pip install oarepo-model-builder
 
@@ -29,7 +29,7 @@ if [ -d .venv-tests ] ; then
 fi
 
 
-python3.10 -m venv .venv-tests
+python3 -m venv .venv-tests
 source .venv-tests/bin/activate
 
 pip install -U setuptools pip wheel
