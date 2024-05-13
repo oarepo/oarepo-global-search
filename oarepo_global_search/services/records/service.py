@@ -1,6 +1,7 @@
 import copy
 
-from invenio_records_resources.records.api import Record
+# from invenio_records_resources.records.api import Record
+from .api import GlobalSearchRecord
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.services import RecordService as InvenioRecordService
 from invenio_records_resources.services import (
@@ -31,6 +32,10 @@ class GlobalSearchService(InvenioRecordService):
         return indices
 
     @property
+    def indexer(self):
+        return None
+
+    @property
     def service_mapping(self):
         service_mapping = []
         for s in current_global_search.model_services:
@@ -39,7 +44,7 @@ class GlobalSearchService(InvenioRecordService):
 
     @property
     def config(self):
-        Record.index = IndexField(self.indices())
+        GlobalSearchRecord.index = IndexField(self.indices())
         GlobalSearchResultList.services = self.service_mapping
 
         config_class = type(
@@ -49,7 +54,7 @@ class GlobalSearchService(InvenioRecordService):
                 "PERMISSIONS_PRESETS": ["everyone"],
                 "base_permission_policy_cls": GlobalSearchPermissionPolicy,
                 "result_list_cls": GlobalSearchResultList,
-                "record_cls": Record,
+                "record_cls": GlobalSearchRecord,
                 "url_prefix": "/search",
                 "links_search": pagination_links("{+api}/search{?args*}"),
             },

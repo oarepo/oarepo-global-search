@@ -8,6 +8,8 @@ from oarepo_global_search.services.records.service import GlobalSearchService
 
 
 def test_description_search(app, db, search_clear, identity_simple):
+    time.sleep(3)
+
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -36,6 +38,8 @@ def test_description_search(app, db, search_clear, identity_simple):
 
 
 def test_basic_search(app, db, search_clear, identity_simple):
+    time.sleep(3)
+
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -64,6 +68,8 @@ def test_basic_search(app, db, search_clear, identity_simple):
 
 
 def test_links(app, db, search_clear, identity_simple):
+    time.sleep(3)
+
     modelb_record1 = modelb_service.create(
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "blah"}},
@@ -86,6 +92,8 @@ def test_links(app, db, search_clear, identity_simple):
 
 
 def test_zero_hits(app, db, search_clear, identity_simple):
+    time.sleep(3)
+
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -110,6 +118,7 @@ def test_zero_hits(app, db, search_clear, identity_simple):
 
 
 def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
+    time.sleep(3)
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -135,6 +144,7 @@ def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
 
 
 def test_facets(app, db, search_clear, identity_simple):
+    time.sleep(3)
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "1"}},
