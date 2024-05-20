@@ -1,6 +1,8 @@
 import copy
 
 # from invenio_records_resources.records.api import Record
+from invenio_records_resources.proxies import current_service_registry
+
 from .api import GlobalSearchRecord
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.services import RecordService as InvenioRecordService
@@ -13,7 +15,8 @@ from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
-
+from invenio_base.utils import obj_or_import_string
+from flask import current_app
 from ...proxies import current_global_search
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
@@ -38,9 +41,14 @@ class GlobalSearchService(InvenioRecordService):
     @property
     def service_mapping(self):
         service_mapping = []
-        for s in current_global_search.model_services:
-            service_mapping.append({s: s.record_cls.schema.value})
+        for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
+            service_def = obj_or_import_string(model["model_service"])
+            service_cfg = obj_or_import_string(model["service_config"])
+            service = service_def(service_cfg())
+            service_mapping.append({service: service.record_cls.schema.value})
+
         return service_mapping
+
 
     @property
     def config(self):
@@ -69,21 +77,22 @@ class GlobalSearchService(InvenioRecordService):
         model_services = {}
 
         # check if search is possible
-        for service in current_global_search.model_services:
-            try:
-                service.create_search(
-                    identity=identity,
-                    record_cls=service.record_cls,
-                    search_opts=service.config.search,
-                )
-                service_dict = {
-                    "record_cls": service.record_cls,
-                    "search_opts": service.config.search,
-                    "schema": service.record_cls.schema.value,
-                }
-                model_services[service] = service_dict
-            except Exception as e:
-                print(e)
+        for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
+            service_def = obj_or_import_string(model["model_service"])
+            service_cfg = obj_or_import_string(model["service_config"])
+            service = service_def(service_cfg)
+
+            service.create_search(
+                identity=identity,
+                record_cls=service.record_cls,
+                search_opts=service.config.search,
+            )
+            service_dict = {
+                "record_cls": service.record_cls,
+                "search_opts": service.config.search,
+                "schema": service.record_cls.schema.value,
+            }
+            model_services[service] = service_dict
 
         model_services = {
             service: v

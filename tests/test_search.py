@@ -5,10 +5,10 @@ from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
 
 from oarepo_global_search.services.records.service import GlobalSearchService
-
+from modela.records.api import ModelaRecord
+from modelb.records.api import ModelbRecord
 
 def test_description_search(app, db, search_clear, identity_simple):
-    time.sleep(3)
 
     modela_record1 = modela_service.create(
         system_identity,
@@ -22,7 +22,8 @@ def test_description_search(app, db, search_clear, identity_simple):
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "blah"}},
     )
-    time.sleep(1)
+    ModelaRecord.index.refresh()
+    ModelbRecord.index.refresh()
 
     result = GlobalSearchService().global_search(
         system_identity,
@@ -38,7 +39,6 @@ def test_description_search(app, db, search_clear, identity_simple):
 
 
 def test_basic_search(app, db, search_clear, identity_simple):
-    time.sleep(3)
 
     modela_record1 = modela_service.create(
         system_identity,
@@ -52,7 +52,8 @@ def test_basic_search(app, db, search_clear, identity_simple):
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "blah"}},
     )
-    time.sleep(1)
+    ModelaRecord.index.refresh()
+    ModelbRecord.index.refresh()
 
     result = GlobalSearchService().global_search(
         system_identity,
@@ -68,13 +69,13 @@ def test_basic_search(app, db, search_clear, identity_simple):
 
 
 def test_links(app, db, search_clear, identity_simple):
-    time.sleep(3)
 
     modelb_record1 = modelb_service.create(
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "blah"}},
     )
-    time.sleep(1)
+    ModelaRecord.index.refresh()
+    ModelbRecord.index.refresh()
 
     result = GlobalSearchService().global_search(
         system_identity,
@@ -92,8 +93,6 @@ def test_links(app, db, search_clear, identity_simple):
 
 
 def test_zero_hits(app, db, search_clear, identity_simple):
-    time.sleep(3)
-
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -106,7 +105,8 @@ def test_zero_hits(app, db, search_clear, identity_simple):
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "blah"}},
     )
-    time.sleep(1)
+    ModelaRecord.index.refresh()
+    ModelbRecord.index.refresh()
 
     result = GlobalSearchService().global_search(
         system_identity,
@@ -118,7 +118,6 @@ def test_zero_hits(app, db, search_clear, identity_simple):
 
 
 def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
-    time.sleep(3)
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -131,7 +130,8 @@ def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
         system_identity,
         {"metadata": {"title": "kkkkkkkkk", "bdescription": "kkkkk"}},
     )
-    time.sleep(1)
+    ModelaRecord.index.refresh()
+    ModelbRecord.index.refresh()
 
     result = GlobalSearchService().global_search(
         system_identity,
@@ -144,7 +144,6 @@ def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
 
 
 def test_facets(app, db, search_clear, identity_simple):
-    time.sleep(3)
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "1"}},
@@ -158,9 +157,8 @@ def test_facets(app, db, search_clear, identity_simple):
         {"metadata": {"title": "kkkkkkkkk", "bdescription": "3"}},
     )
 
-    modela_service.record_cls.index.refresh()
-    modelb_service.record_cls.index.refresh()
-    time.sleep(5)
+    ModelaRecord.index.refresh()
+    ModelbRecord.index.refresh()
 
     result = GlobalSearchService().global_search(
         system_identity,

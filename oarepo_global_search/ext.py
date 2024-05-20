@@ -38,6 +38,7 @@ class OARepoGlobalSearch(object):
         # load all models from json files registered in oarepo.ui entry point
         ret = []
         eps = entry_points(group="oarepo.models")
+
         for ep in eps:
             path = Path(obj_or_import_string(ep.module).__file__).parent / ep.attr
             model = json.loads(path.read_text())
