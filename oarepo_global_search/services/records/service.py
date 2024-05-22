@@ -48,7 +48,10 @@ class GlobalSearchService(InvenioRecordService):
         for service_dict in self.service_mapping:
             service = list(service_dict.keys())[0]
             facets.update(service.config.search.facets)
-            sort_options.update(service.config.search.sort_options)
+            try:
+                sort_options.update(service.config.search.sort_options)
+            except:
+                pass
             sort_default = service.config.search.sort_default
             sort_default_no_query = service.config.search.sort_default_no_query
         return {"facets": facets, "sort_options": sort_options, "sort_default": sort_default,
@@ -128,13 +131,19 @@ class GlobalSearchService(InvenioRecordService):
         # get queries
         queries_list = {}
         for service, service_dict in model_services.items():
-            query = service.search_request(
+            search = service.search_request(
                 identity=identity,
                 params=copy.deepcopy(params),
                 record_cls=service_dict["record_cls"],
                 search_opts=service_dict["search_opts"],
             )
-            queries_list[service_dict["schema"]] = query.to_dict()
+            for component in service.components:
+                if hasattr(component, 'search'):
+                    search = getattr(component, 'search')(identity, search, params)
+            for component in service.components:
+                if hasattr(component, 'search_drafts'):
+                    search = getattr(component, 'search_drafts')(identity, search, params)
+            queries_list[service_dict["schema"]] = search.to_dict()
 
         # merge query
         combined_query = {
