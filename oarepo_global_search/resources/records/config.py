@@ -48,7 +48,6 @@ class GlobalUserSearchResourceConfig(RecordResourceConfig):
             api_resources.append(api_resource)
             handler = api_resource().response_handlers
 
-        # todo own Handler class
         return {
             "application/vnd.inveniordm.v1+json": ResponseHandler(
                 handler["application/vnd.inveniordm.v1+json"].serializer

@@ -5,7 +5,7 @@ from invenio_records_resources.proxies import current_service_registry
 
 from .api import GlobalSearchRecord
 from invenio_records_resources.records.systemfields import IndexField
-from invenio_records_resources.services import RecordService as InvenioRecordService
+from invenio_records_resources.services import RecordService as InvenioRecordService, SearchOptions
 from invenio_records_resources.services import (
     RecordServiceConfig as InvenioRecordServiceConfig,
 )
@@ -22,6 +22,11 @@ from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
 
 
+class GlobalSearchOptions(SearchOptions):
+    """Search options."""
+    pass
+
+
 class GlobalSearchService(InvenioRecordService):
     """GlobalSearchRecord service."""
 
@@ -30,9 +35,24 @@ class GlobalSearchService(InvenioRecordService):
 
     def indices(self):
         indices = []
-        for s in current_global_search.model_services:
-            indices.append(s.record_cls.index.search_alias)
+        for service_dict in self.service_mapping:
+            service = list(service_dict.keys())[0]
+            indices.append(service.record_cls.index.search_alias)
         return indices
+
+    def search_opts(self):
+        facets = {}
+        sort_options = {}
+        sort_default = ""
+        sort_default_no_query = ""
+        for service_dict in self.service_mapping:
+            service = list(service_dict.keys())[0]
+            facets.update(service.config.search.facets)
+            sort_options.update(service.config.search.sort_options)
+            sort_default = service.config.search.sort_default
+            sort_default_no_query = service.config.search.sort_default_no_query
+        return {"facets": facets, "sort_options": sort_options, "sort_default": sort_default,
+                "sort_default_no_query": sort_default_no_query}
 
     @property
     def indexer(self):
@@ -49,11 +69,15 @@ class GlobalSearchService(InvenioRecordService):
 
         return service_mapping
 
-
     @property
     def config(self):
         GlobalSearchRecord.index = IndexField(self.indices())
         GlobalSearchResultList.services = self.service_mapping
+        search_opts = self.search_opts()
+        GlobalSearchOptions.facets = search_opts["facets"]
+        GlobalSearchOptions.sort_options = search_opts["sort_options"]
+        GlobalSearchOptions.sort_default = search_opts["sort_default"]
+        GlobalSearchOptions.sort_default_no_query = search_opts["sort_default_no_query"]
 
         config_class = type(
             "GlobalSearchServiceConfig",
@@ -65,6 +89,7 @@ class GlobalSearchService(InvenioRecordService):
                 "record_cls": GlobalSearchRecord,
                 "url_prefix": "/search",
                 "links_search": pagination_links("{+api}/search{?args*}"),
+                "search": GlobalSearchOptions
             },
         )
         return config_class()
@@ -98,7 +123,7 @@ class GlobalSearchService(InvenioRecordService):
             service: v
             for service, v in model_services.items()
             if not hasattr(service, "check_permission")
-            or service.check_permission(identity, "search")
+               or service.check_permission(identity, "search")
         }
         # get queries
         queries_list = {}

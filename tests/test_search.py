@@ -30,7 +30,6 @@ def test_description_search(app, db, search_clear, identity_simple):
         {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
     results = result.to_dict()
-
     assert len(results["hits"]["hits"]) == 1
 
     assert modela_record2.data in results["hits"]["hits"]
