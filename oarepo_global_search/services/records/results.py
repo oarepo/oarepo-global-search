@@ -7,6 +7,18 @@ from invenio_records_resources.services.records.results import (
 class GlobalSearchResultList(BaseRecordList):
     services = []
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def aggregations(self):
+        """Get the search result aggregations."""
+        # TODO: have a way to label or not label
+        try:
+            return self._results.labelled_facets.to_dict()
+        except AttributeError:
+            return None
+
     @property
     def hits(self):
         """Iterator over the hits."""

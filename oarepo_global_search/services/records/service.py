@@ -1,9 +1,11 @@
 import copy
 
 # from invenio_records_resources.records.api import Record
+from invenio_records_resources.proxies import current_service_registry
+
 from .api import GlobalSearchRecord
 from invenio_records_resources.records.systemfields import IndexField
-from invenio_records_resources.services import RecordService as InvenioRecordService
+from invenio_records_resources.services import RecordService as InvenioRecordService, SearchOptions
 from invenio_records_resources.services import (
     RecordServiceConfig as InvenioRecordServiceConfig,
 )
@@ -13,23 +15,47 @@ from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
-
+from invenio_base.utils import obj_or_import_string
+from flask import current_app
 from ...proxies import current_global_search
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
 
 
+class GlobalSearchOptions(SearchOptions):
+    """Search options."""
+    pass
+
+
 class GlobalSearchService(InvenioRecordService):
     """GlobalSearchRecord service."""
-
+    components_def = None
     def __init__(self):
         super().__init__(None)
 
     def indices(self):
         indices = []
-        for s in current_global_search.model_services:
-            indices.append(s.record_cls.index.search_alias)
+        for service_dict in self.service_mapping:
+            service = list(service_dict.keys())[0]
+            indices.append(service.record_cls.index.search_alias)
         return indices
+
+    def search_opts(self):
+        facets = {}
+        sort_options = {}
+        sort_default = ""
+        sort_default_no_query = ""
+        for service_dict in self.service_mapping:
+            service = list(service_dict.keys())[0]
+            facets.update(service.config.search.facets)
+            try:
+                sort_options.update(service.config.search.sort_options)
+            except:
+                pass
+            sort_default = service.config.search.sort_default
+            sort_default_no_query = service.config.search.sort_default_no_query
+        return {"facets": facets, "sort_options": sort_options, "sort_default": sort_default,
+                "sort_default_no_query": sort_default_no_query}
 
     @property
     def indexer(self):
@@ -38,14 +64,23 @@ class GlobalSearchService(InvenioRecordService):
     @property
     def service_mapping(self):
         service_mapping = []
-        for s in current_global_search.model_services:
-            service_mapping.append({s: s.record_cls.schema.value})
+        for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
+            service_def = obj_or_import_string(model["model_service"])
+            service_cfg = obj_or_import_string(model["service_config"])
+            service = service_def(service_cfg())
+            service_mapping.append({service: service.record_cls.schema.value})
+
         return service_mapping
 
     @property
     def config(self):
         GlobalSearchRecord.index = IndexField(self.indices())
         GlobalSearchResultList.services = self.service_mapping
+        search_opts = self.search_opts()
+        GlobalSearchOptions.facets = search_opts["facets"]
+        GlobalSearchOptions.sort_options = search_opts["sort_options"]
+        GlobalSearchOptions.sort_default = search_opts["sort_default"]
+        GlobalSearchOptions.sort_default_no_query = search_opts["sort_default_no_query"]
 
         config_class = type(
             "GlobalSearchServiceConfig",
@@ -57,6 +92,7 @@ class GlobalSearchService(InvenioRecordService):
                 "record_cls": GlobalSearchRecord,
                 "url_prefix": "/search",
                 "links_search": pagination_links("{+api}/search{?args*}"),
+                "search": GlobalSearchOptions
             },
         )
         return config_class()
@@ -69,38 +105,46 @@ class GlobalSearchService(InvenioRecordService):
         model_services = {}
 
         # check if search is possible
-        for service in current_global_search.model_services:
-            try:
-                service.create_search(
-                    identity=identity,
-                    record_cls=service.record_cls,
-                    search_opts=service.config.search,
-                )
-                service_dict = {
-                    "record_cls": service.record_cls,
-                    "search_opts": service.config.search,
-                    "schema": service.record_cls.schema.value,
-                }
-                model_services[service] = service_dict
-            except Exception as e:
-                print(e)
+        for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
+            service_def = obj_or_import_string(model["model_service"])
+            service_cfg = obj_or_import_string(model["service_config"])
+            service = service_def(service_cfg)
+
+            service.create_search(
+                identity=identity,
+                record_cls=service.record_cls,
+                search_opts=service.config.search,
+            )
+            service_dict = {
+                "record_cls": service.record_cls,
+                "search_opts": service.config.search,
+                "schema": service.record_cls.schema.value,
+            }
+            model_services[service] = service_dict
 
         model_services = {
             service: v
             for service, v in model_services.items()
             if not hasattr(service, "check_permission")
-            or service.check_permission(identity, "search")
+               or service.check_permission(identity, "search")
         }
         # get queries
         queries_list = {}
         for service, service_dict in model_services.items():
-            query = service.search_request(
+            search = service.search_request(
                 identity=identity,
                 params=copy.deepcopy(params),
                 record_cls=service_dict["record_cls"],
                 search_opts=service_dict["search_opts"],
             )
-            queries_list[service_dict["schema"]] = query.to_dict()
+            if self.components_def:
+                for component in service.components:
+                    if hasattr(component, 'search'):
+                        search = getattr(component, 'search')(identity, search, params)
+                for component in service.components:
+                    if hasattr(component, 'search_drafts'):
+                        search = getattr(component, 'search_drafts')(identity, search, params)
+            queries_list[service_dict["schema"]] = search.to_dict()
 
         # merge query
         combined_query = {
