@@ -1,7 +1,14 @@
+import copy
+
 from invenio_records_resources.resources.records.config import RecordResourceConfig
 from flask import current_app
 from invenio_base.utils import obj_or_import_string
 from flask_resources import ResponseHandler
+from flask import Response, make_response
+from flask_resources.context import resource_requestctx
+from .response import GlobalSearchResponseHandler
+import json
+
 
 
 class GlobalSearchResourceConfig(RecordResourceConfig):
@@ -16,20 +23,24 @@ class GlobalSearchResourceConfig(RecordResourceConfig):
         entrypoint_response_handlers = {}
 
         resource_defs = current_app.config.get("GLOBAL_SEARCH_MODELS")
-        api_resources = []
+        serializers = []
+
         for definition in resource_defs:
             api_resource = obj_or_import_string(definition["api_resource_config"])
-            api_resources.append(api_resource)
             handler = api_resource().response_handlers
+            service_def = obj_or_import_string(definition["model_service"])
+            service_cfg = obj_or_import_string(definition["service_config"])
+            service = service_def(service_cfg())
+            serializers.append({"schema": service.record_cls.schema.value,
+                                "serializer": handler["application/vnd.inveniordm.v1+json"].serializer})
 
         return {
-            "application/vnd.inveniordm.v1+json": ResponseHandler(
-                handler["application/vnd.inveniordm.v1+json"].serializer
+            "application/vnd.inveniordm.v1+json": GlobalSearchResponseHandler(
+                serializers
             ),
             **super().response_handlers,
             **entrypoint_response_handlers,
         }
-
 class GlobalUserSearchResourceConfig(RecordResourceConfig):
     blueprint_name = "global_user_search"
     url_prefix = "/user/search"
@@ -42,15 +53,19 @@ class GlobalUserSearchResourceConfig(RecordResourceConfig):
         entrypoint_response_handlers = {}
 
         resource_defs = current_app.config.get("GLOBAL_SEARCH_MODELS")
-        api_resources = []
+        serializers = []
+
         for definition in resource_defs:
             api_resource = obj_or_import_string(definition["api_resource_config"])
-            api_resources.append(api_resource)
             handler = api_resource().response_handlers
+            service_def = obj_or_import_string(definition["model_service"])
+            service_cfg = obj_or_import_string(definition["service_config"])
+            service = service_def(service_cfg())
+            serializers.append({"schema": service.record_cls.schema.value,"serializer": handler["application/vnd.inveniordm.v1+json"].serializer })
 
         return {
-            "application/vnd.inveniordm.v1+json": ResponseHandler(
-                handler["application/vnd.inveniordm.v1+json"].serializer
+            "application/vnd.inveniordm.v1+json": GlobalSearchResponseHandler(
+                serializers
             ),
             **super().response_handlers,
             **entrypoint_response_handlers,
