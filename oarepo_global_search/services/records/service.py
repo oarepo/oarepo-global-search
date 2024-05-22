@@ -29,7 +29,7 @@ class GlobalSearchOptions(SearchOptions):
 
 class GlobalSearchService(InvenioRecordService):
     """GlobalSearchRecord service."""
-
+    components_def = None
     def __init__(self):
         super().__init__(None)
 
@@ -137,12 +137,13 @@ class GlobalSearchService(InvenioRecordService):
                 record_cls=service_dict["record_cls"],
                 search_opts=service_dict["search_opts"],
             )
-            for component in service.components:
-                if hasattr(component, 'search'):
-                    search = getattr(component, 'search')(identity, search, params)
-            for component in service.components:
-                if hasattr(component, 'search_drafts'):
-                    search = getattr(component, 'search_drafts')(identity, search, params)
+            if self.components_def:
+                for component in service.components:
+                    if hasattr(component, 'search'):
+                        search = getattr(component, 'search')(identity, search, params)
+                for component in service.components:
+                    if hasattr(component, 'search_drafts'):
+                        search = getattr(component, 'search_drafts')(identity, search, params)
             queries_list[service_dict["schema"]] = search.to_dict()
 
         # merge query
