@@ -1,6 +1,6 @@
-from oarepo_ui.resources import RecordsUIResourceConfig, RecordsUIResource
 from flask import current_app
 from invenio_base.utils import obj_or_import_string
+from oarepo_ui.resources import RecordsUIResource, RecordsUIResourceConfig
 
 
 class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
@@ -23,8 +23,11 @@ class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
             service_def = obj_or_import_string(definition["model_service"])
             service_cfg = obj_or_import_string(definition["service_config"])
             service = service_def(service_cfg())
-            default_components[service.record_cls.schema.value] = getattr(ui_resource ,"search_component", None )
+            default_components[service.record_cls.schema.value] = getattr(
+                ui_resource, "search_component", None
+            )
         return default_components
+
 
 class GlobalSearchUIResource(RecordsUIResource):
     pass

@@ -1,35 +1,38 @@
 import copy
 
-# from invenio_records_resources.records.api import Record
-from invenio_records_resources.proxies import current_service_registry
-
-from .api import GlobalSearchRecord
+from flask import current_app
+from invenio_base.utils import obj_or_import_string
 from invenio_records_resources.records.systemfields import IndexField
-from invenio_records_resources.services import RecordService as InvenioRecordService, SearchOptions
+from invenio_records_resources.services import RecordService as InvenioRecordService
 from invenio_records_resources.services import (
     RecordServiceConfig as InvenioRecordServiceConfig,
 )
-from invenio_records_resources.services import pagination_links
+from invenio_records_resources.services import SearchOptions, pagination_links
 from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
 
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
-from invenio_base.utils import obj_or_import_string
-from flask import current_app
-from ...proxies import current_global_search
+
+from .api import GlobalSearchRecord
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
+
+# from invenio_records_resources.records.api import Record
+
+
 
 
 class GlobalSearchOptions(SearchOptions):
     """Search options."""
-    pass
+
 
 
 class GlobalSearchService(InvenioRecordService):
     """GlobalSearchRecord service."""
+
     components_def = None
+
     def __init__(self):
         super().__init__(None)
 
@@ -54,8 +57,12 @@ class GlobalSearchService(InvenioRecordService):
                 pass
             sort_default = service.config.search.sort_default
             sort_default_no_query = service.config.search.sort_default_no_query
-        return {"facets": facets, "sort_options": sort_options, "sort_default": sort_default,
-                "sort_default_no_query": sort_default_no_query}
+        return {
+            "facets": facets,
+            "sort_options": sort_options,
+            "sort_default": sort_default,
+            "sort_default_no_query": sort_default_no_query,
+        }
 
     @property
     def indexer(self):
@@ -92,7 +99,7 @@ class GlobalSearchService(InvenioRecordService):
                 "record_cls": GlobalSearchRecord,
                 "url_prefix": "/search",
                 "links_search": pagination_links("{+api}/search{?args*}"),
-                "search": GlobalSearchOptions
+                "search": GlobalSearchOptions,
             },
         )
         return config_class()
@@ -126,7 +133,7 @@ class GlobalSearchService(InvenioRecordService):
             service: v
             for service, v in model_services.items()
             if not hasattr(service, "check_permission")
-               or service.check_permission(identity, "search")
+            or service.check_permission(identity, "search")
         }
         # get queries
         queries_list = {}
@@ -139,11 +146,13 @@ class GlobalSearchService(InvenioRecordService):
             )
             if self.components_def:
                 for component in service.components:
-                    if hasattr(component, 'search'):
-                        search = getattr(component, 'search')(identity, search, params)
+                    if hasattr(component, "search"):
+                        search = getattr(component, "search")(identity, search, params)
                 for component in service.components:
-                    if hasattr(component, 'search_drafts'):
-                        search = getattr(component, 'search_drafts')(identity, search, params)
+                    if hasattr(component, "search_drafts"):
+                        search = getattr(component, "search_drafts")(
+                            identity, search, params
+                        )
             queries_list[service_dict["schema"]] = search.to_dict()
 
         # merge query

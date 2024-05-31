@@ -1,8 +1,9 @@
-from flask_resources import ResponseHandler
-from flask import Response, make_response
-from flask_resources.context import resource_requestctx
-import json
 import copy
+import json
+
+from flask import Response, make_response
+from flask_resources import ResponseHandler
+
 
 class GlobalSearchResponseHandler(ResponseHandler):
 
@@ -16,7 +17,6 @@ class GlobalSearchResponseHandler(ResponseHandler):
         # If view returns a response, bypass the serialization.
         if isinstance(obj_or_list, Response):
             return obj_or_list
-
 
         serialized_hits = []
         for hit in obj_or_list["hits"]["hits"]:
