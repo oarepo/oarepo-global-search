@@ -20,8 +20,12 @@ class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
         default_components = {}
         for definition in resource_defs:
             ui_resource = obj_or_import_string(definition["ui_resource_config"])
-            record_api = obj_or_import_string(definition["records_api"])
-            default_components[record_api.schema.value] = ui_resource.search_component
+            service_def = obj_or_import_string(definition["model_service"])
+            service_cfg = obj_or_import_string(definition["service_config"])
+            service = service_def(service_cfg())
+            default_components[service.record_cls.schema.value] = getattr(
+                ui_resource, "search_component", None
+            )
         return default_components
 
 

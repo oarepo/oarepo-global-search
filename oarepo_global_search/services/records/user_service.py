@@ -5,6 +5,8 @@ from oarepo_global_search.services.records.service import GlobalSearchService
 class GlobalUserSearchService(GlobalSearchService):
     """GlobalSearchRecord service."""
 
+    components_def = True
+
     def indices(self):
         indices = []
         for s in current_global_search.model_services:

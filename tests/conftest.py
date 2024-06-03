@@ -38,5 +38,15 @@ def app_config(app_config):
             "port": os.environ.get("OPENSEARCH_PORT", "9200"),
         }
     ]
+    app_config["GLOBAL_SEARCH_MODELS"] = [
+        {
+            "model_service": "modela.services.records.service.ModelaService",
+            "service_config": "modela.services.records.config.ModelaServiceConfig",
+        },
+        {
+            "model_service": "modelb.services.records.service.ModelbService",
+            "service_config": "modelb.services.records.config.ModelbServiceConfig",
+        },
+    ]
 
     return app_config
