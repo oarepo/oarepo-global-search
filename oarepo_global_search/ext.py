@@ -33,7 +33,7 @@ class OARepoGlobalSearch(object):
 
     def init_app(self, app):
         """Flask application initialization."""
-        self.init_config(app)
+        self.app = app
         self.init_resources(app)
         app.extensions["global_search"] = self
 
@@ -53,8 +53,6 @@ class OARepoGlobalSearch(object):
                 ret.append(current_service_registry.get(service_id))
         return ret
 
-    def init_config(self, app):
-        pass
 
     def init_resources(self, app):
         """Init resources."""
