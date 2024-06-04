@@ -71,11 +71,12 @@ class GlobalSearchService(InvenioRecordService):
     @property
     def service_mapping(self):
         service_mapping = []
-        for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
-            service_def = obj_or_import_string(model["model_service"])
-            service_cfg = obj_or_import_string(model["service_config"])
-            service = service_def(service_cfg())
-            service_mapping.append({service: service.record_cls.schema.value})
+        if hasattr(current_app, "config"):
+            for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
+                service_def = obj_or_import_string(model["model_service"])
+                service_cfg = obj_or_import_string(model["service_config"])
+                service = service_def(service_cfg())
+                service_mapping.append({service: service.record_cls.schema.value})
 
         return service_mapping
 
