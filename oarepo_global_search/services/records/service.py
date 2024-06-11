@@ -1,6 +1,5 @@
 import copy
-
-from flask import current_app
+from flask import current_app, has_app_context
 from invenio_base.utils import obj_or_import_string
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.services import RecordService as InvenioRecordService
@@ -71,11 +70,12 @@ class GlobalSearchService(InvenioRecordService):
     @property
     def service_mapping(self):
         service_mapping = []
-        for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
-            service_def = obj_or_import_string(model["model_service"])
-            service_cfg = obj_or_import_string(model["service_config"])
-            service = service_def(service_cfg())
-            service_mapping.append({service: service.record_cls.schema.value})
+        if has_app_context() and hasattr(current_app, "config"):
+            for model in current_app.config.get("GLOBAL_SEARCH_MODELS", []):
+                service_def = obj_or_import_string(model["model_service"])
+                service_cfg = obj_or_import_string(model["service_config"])
+                service = service_def(service_cfg())
+                service_mapping.append({service: service.record_cls.schema.value})
 
         return service_mapping
 
@@ -108,7 +108,7 @@ class GlobalSearchService(InvenioRecordService):
     def config(self, value):
         pass
 
-    def global_search(self, identity, params, *args, **kwargs):
+    def global_search(self, identity, params, *args, extra_filter=None, **kwargs):
         model_services = {}
 
         # check if search is possible
@@ -143,6 +143,7 @@ class GlobalSearchService(InvenioRecordService):
                 params=copy.deepcopy(params),
                 record_cls=service_dict["record_cls"],
                 search_opts=service_dict["search_opts"],
+                extra_filter=extra_filter,
             )
             if self.components_def:
                 for component in service.components:
