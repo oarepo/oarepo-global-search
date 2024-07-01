@@ -1,4 +1,5 @@
 import copy
+
 from flask import current_app, has_app_context
 from invenio_base.utils import obj_or_import_string
 from invenio_records_resources.records.systemfields import IndexField
@@ -6,8 +7,9 @@ from invenio_records_resources.services import RecordService as InvenioRecordSer
 from invenio_records_resources.services import (
     RecordServiceConfig as InvenioRecordServiceConfig,
 )
-from invenio_records_resources.services import SearchOptions, pagination_links
+from invenio_records_resources.services import pagination_links
 from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
+from oarepo_runtime.services.search import SearchOptions
 
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
@@ -20,11 +22,8 @@ from .results import GlobalSearchResultList
 # from invenio_records_resources.records.api import Record
 
 
-
-
 class GlobalSearchOptions(SearchOptions):
     """Search options."""
-
 
 
 class GlobalSearchService(InvenioRecordService):
@@ -44,6 +43,7 @@ class GlobalSearchService(InvenioRecordService):
 
     def search_opts(self):
         facets = {}
+        facet_groups = {}
         sort_options = {}
         sort_default = ""
         sort_default_no_query = ""
@@ -56,8 +56,10 @@ class GlobalSearchService(InvenioRecordService):
                 pass
             sort_default = service.config.search.sort_default
             sort_default_no_query = service.config.search.sort_default_no_query
+            facet_groups = service.config.search.facet_groups
         return {
             "facets": facets,
+            "facet_groups": facet_groups,
             "sort_options": sort_options,
             "sort_default": sort_default,
             "sort_default_no_query": sort_default_no_query,
@@ -85,6 +87,7 @@ class GlobalSearchService(InvenioRecordService):
         GlobalSearchResultList.services = self.service_mapping
         search_opts = self.search_opts()
         GlobalSearchOptions.facets = search_opts["facets"]
+        GlobalSearchOptions.facet_groups = search_opts["facet_groups"]
         GlobalSearchOptions.sort_options = search_opts["sort_options"]
         GlobalSearchOptions.sort_default = search_opts["sort_default"]
         GlobalSearchOptions.sort_default_no_query = search_opts["sort_default_no_query"]

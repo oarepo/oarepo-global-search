@@ -1,4 +1,3 @@
-
 from invenio_access.permissions import system_identity
 from modela.proxies import current_service as modela_service
 from modela.records.api import ModelaRecord
@@ -9,7 +8,6 @@ from oarepo_global_search.services.records.service import GlobalSearchService
 
 
 def test_description_search(app, db, search_clear, identity_simple):
-
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -38,7 +36,6 @@ def test_description_search(app, db, search_clear, identity_simple):
 
 
 def test_basic_search(app, db, search_clear, identity_simple):
-
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -68,7 +65,6 @@ def test_basic_search(app, db, search_clear, identity_simple):
 
 
 def test_links(app, db, search_clear, identity_simple):
-
     modelb_record1 = modelb_service.create(
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "blah"}},
