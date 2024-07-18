@@ -16,10 +16,9 @@ from oarepo_global_search.services.records.permissions import (
 )
 
 from .api import GlobalSearchRecord
+from .exceptions import InvalidServicesError, PermissionDeniedError
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
-
-# from invenio_records_resources.records.api import Record
 
 
 class GlobalSearchOptions(SearchOptions):
@@ -132,12 +131,18 @@ class GlobalSearchService(InvenioRecordService):
             }
             model_services[service] = service_dict
 
-        model_services = {
-            service: v
-            for service, v in model_services.items()
-            if not hasattr(service, "check_permission")
-            or service.check_permission(identity, "search", **kwargs)
-        }
+        model_services = {service: v for service, v in model_services.items()}
+        if model_services == {}:
+            raise InvalidServicesError
+
+        for service in list(model_services.keys()):
+            if hasattr(service, "check_permission"):
+                if not service.check_permission(identity, "search", **kwargs):
+                    del model_services[service]
+            else:
+                del model_services[service]
+        if model_services == {}:
+            raise PermissionDeniedError
         # get queries
         queries_list = {}
         for service, service_dict in model_services.items():
