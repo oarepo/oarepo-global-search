@@ -14,9 +14,10 @@ from oarepo_runtime.services.search import SearchOptions
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
+from werkzeug.exceptions import Forbidden
 
 from .api import GlobalSearchRecord
-from .exceptions import InvalidServicesError, PermissionDeniedError
+from .exceptions import InvalidServicesError
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
 
@@ -142,7 +143,7 @@ class GlobalSearchService(InvenioRecordService):
             else:
                 del model_services[service]
         if model_services == {}:
-            raise PermissionDeniedError
+            raise Forbidden()
         # get queries
         queries_list = {}
         for service, service_dict in model_services.items():
