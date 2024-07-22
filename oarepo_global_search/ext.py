@@ -53,7 +53,6 @@ class OARepoGlobalSearch(object):
                 ret.append(current_service_registry.get(service_id))
         return ret
 
-
     def init_resources(self, app):
         """Init resources."""
         self.global_search_resource = GlobalSearchResource(

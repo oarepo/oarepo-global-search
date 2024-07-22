@@ -6,7 +6,6 @@ from flask_resources import ResponseHandler
 
 
 class GlobalSearchResponseHandler(ResponseHandler):
-
     def __init__(self, serializers, headers=None):
         """Constructor."""
         self.serializers = serializers
