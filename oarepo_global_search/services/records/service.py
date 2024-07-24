@@ -118,7 +118,7 @@ class GlobalSearchService(InvenioRecordService):
         for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
             service_def = obj_or_import_string(model["model_service"])
             service_cfg = obj_or_import_string(model["service_config"])
-            service = service_def(service_cfg)
+            service = service_def(service_cfg())
 
             service.create_search(
                 identity=identity,
