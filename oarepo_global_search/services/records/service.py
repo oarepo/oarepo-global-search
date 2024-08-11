@@ -196,4 +196,15 @@ class GlobalSearchService(InvenioRecordService):
             "json"
         ]  # to get rid of the json arg from url
 
+        # add the original parameters to the pagination links
+        for param_name, param_value in params.items():
+            if param_name != 'facets':
+                self.add_param_to_links(hits, param_name, param_value)
+            else:
+                for facet_name, facet_value in param_value.items():
+                    self.add_param_to_links(hits, facet_name, facet_value)
         return hits
+
+    def add_param_to_links(self, hits, param_name, param_value):
+        if param_name not in hits._links_tpl.context["args"]:
+            hits._links_tpl.context["args"][param_name] = param_value
