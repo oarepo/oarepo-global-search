@@ -80,10 +80,49 @@ def test_links(app, db, search_clear, identity_simple):
 
     assert (
         results["links"]["self"]
-        == "https://127.0.0.1:5000/api/search?page=1&q=blah&size=25&sort=newest"
+        == "https://127.0.0.1:5000/api/search?page=1&q=blah&size=10&sort=newest"
     )
     assert results["hits"]["hits"][0]["links"]["self"].startswith(
         "https://127.0.0.1:5000/api/modelb/"
+    )
+
+
+def test_second_page(app, db, search_clear, identity_simple):
+    for r in range(10):
+        modelb_service.create(
+            system_identity,
+            {"metadata": {"title": f"blah {r}", "bdescription": "blah"}},
+        )
+    ModelbRecord.index.refresh()
+
+    result = GlobalSearchService().global_search(
+        system_identity,
+        {"q": "blah", "sort": "bestmatch", "page": 1, "size": 5, "facets": {}},
+    )
+    results = result.to_dict()
+
+    assert (
+        results["links"]["self"]
+        == "https://127.0.0.1:5000/api/search?page=1&q=blah&size=5&sort=newest"
+    )
+    assert (
+        results["links"]["next"]
+        == "https://127.0.0.1:5000/api/search?page=2&q=blah&size=5&sort=newest"
+    )
+
+    result = GlobalSearchService().global_search(
+        system_identity,
+        {"q": "blah", "sort": "bestmatch", "page": 2, "size": 5, "facets": {}},
+    )
+    results = result.to_dict()
+
+    assert (
+        results["links"]["self"]
+        == "https://127.0.0.1:5000/api/search?page=2&q=blah&size=5&sort=newest"
+    )
+    assert (
+        results["links"]["prev"]
+        == "https://127.0.0.1:5000/api/search?page=1&q=blah&size=5&sort=newest"
     )
 
 
