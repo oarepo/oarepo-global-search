@@ -10,11 +10,11 @@ from invenio_records_resources.services import (
 from invenio_records_resources.services import pagination_links
 from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
 from oarepo_runtime.services.search import SearchOptions
+from werkzeug.exceptions import Forbidden
 
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
-from werkzeug.exceptions import Forbidden
 
 from .api import GlobalSearchRecord
 from .exceptions import InvalidServicesError
@@ -188,6 +188,10 @@ class GlobalSearchService(InvenioRecordService):
                 combined_query["sort"].extend(query_data["sort"])
 
         combined_query = {"json": combined_query}
+        if "page" in params:
+            combined_query["page"] = params["page"]
+        if "size" in params:
+            combined_query["size"] = params["size"]
 
         self.config.search.params_interpreters_cls.append(GlobalSearchStrParam)
         hits = self.search(identity, params=combined_query)
@@ -198,7 +202,7 @@ class GlobalSearchService(InvenioRecordService):
 
         # add the original parameters to the pagination links
         for param_name, param_value in params.items():
-            if param_name != 'facets':
+            if param_name != "facets":
                 self.add_param_to_links(hits, param_name, param_value)
             else:
                 for facet_name, facet_value in param_value.items():
