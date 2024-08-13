@@ -13,7 +13,7 @@ from oarepo_global_search.resources.records.config import (
 )
 from oarepo_global_search.resources.records.resource import GlobalSearchResource
 from oarepo_global_search.services.records.service import GlobalSearchService
-from oarepo_global_search.services.records.user_service import GlobalUserSearchService
+# from oarepo_global_search.services.records.user_service import GlobalUserSearchService
 from oarepo_global_search.ui.config import (
     GlobalSearchUIResource,
     GlobalSearchUIResourceConfig,
@@ -36,6 +36,7 @@ class OARepoGlobalSearch(object):
         self.app = app
         self.init_resources(app)
         app.extensions["global_search"] = self
+        app.extensions["global_search_service"] = GlobalSearchService
 
     @functools.cached_property
     def model_services(self):
@@ -58,8 +59,10 @@ class OARepoGlobalSearch(object):
         self.global_search_resource = GlobalSearchResource(
             config=GlobalSearchResourceConfig(), service=GlobalSearchService()
         )
+        user_service = GlobalSearchService()
+        user_service.user = True
         self.global_user_search_resource = GlobalSearchResource(
-            config=GlobalUserSearchResourceConfig(), service=GlobalUserSearchService()
+            config=GlobalUserSearchResourceConfig(), service=user_service
         )
         self.global_search_ui_resource = GlobalSearchUIResource(
             config=GlobalSearchUIResourceConfig()

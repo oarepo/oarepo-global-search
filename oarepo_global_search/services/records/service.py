@@ -21,6 +21,7 @@ from .exceptions import InvalidServicesError
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
 
+from oarepo_global_search.proxies import current_global_search
 
 class GlobalSearchOptions(SearchOptions):
     """Search options."""
@@ -29,7 +30,7 @@ class GlobalSearchOptions(SearchOptions):
 class GlobalSearchService(InvenioRecordService):
     """GlobalSearchRecord service."""
 
-    components_def = None
+    user = None
 
     def __init__(self):
         super().__init__(None)
@@ -39,6 +40,8 @@ class GlobalSearchService(InvenioRecordService):
         for service_dict in self.service_mapping:
             service = list(service_dict.keys())[0]
             indices.append(service.record_cls.index.search_alias)
+            if self.user and getattr(service, "draft_cls", None):
+                indices.append(service.draft_cls.index.search_alias)
         return indices
 
     def search_opts(self):
@@ -154,7 +157,7 @@ class GlobalSearchService(InvenioRecordService):
                 search_opts=service_dict["search_opts"],
                 extra_filter=extra_filter,
             )
-            if self.components_def:
+            if self.user:
                 for component in service.components:
                     if hasattr(component, "search"):
                         search = getattr(component, "search")(identity, search, params)
