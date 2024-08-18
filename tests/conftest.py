@@ -48,5 +48,6 @@ def app_config(app_config):
             "service_config": "modelb.services.records.config.ModelbServiceConfig",
         },
     ]
+    app_config["SITE_API_URL"] = "http://localhost"
 
     return app_config
