@@ -6,7 +6,6 @@ from importlib_metadata import entry_points
 from invenio_base.utils import obj_or_import_string
 from invenio_records_resources.proxies import current_service_registry
 
-from oarepo_global_search import config
 from oarepo_global_search.resources.records.config import (
     GlobalSearchResourceConfig,
     GlobalUserSearchResourceConfig,
@@ -29,6 +28,7 @@ class OARepoGlobalSearch(object):
     def __init__(self, app=None):
         """Extension initialization."""
         if app:
+            self.init_config(app)
             self.init_app(app)
 
     def init_app(self, app):
@@ -67,4 +67,10 @@ class OARepoGlobalSearch(object):
 
     @functools.cached_property
     def service_records(self):
+        from oarepo_global_search import config
         return config.GLOBAL_SEARCH_RECORD_SERVICE_CLASS()
+
+    def init_config(self, app):
+        app.config.setdefault("INFO_ENDPOINT_COMPONENTS", []).append(
+            "oarepo_global_search.info:GlobalSearchInfoComponent"
+        )

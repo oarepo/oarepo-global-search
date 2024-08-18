@@ -80,10 +80,10 @@ def test_links(app, db, search_clear, identity_simple):
 
     assert (
         results["links"]["self"]
-        == "https://127.0.0.1:5000/api/search?page=1&q=blah&size=10&sort=newest"
+        == "http://localhost/search?page=1&q=blah&size=10&sort=newest"
     )
     assert results["hits"]["hits"][0]["links"]["self"].startswith(
-        "https://127.0.0.1:5000/api/modelb/"
+        "http://localhost/modelb/"
     )
 
 
@@ -103,11 +103,11 @@ def test_second_page(app, db, search_clear, identity_simple):
 
     assert (
         results["links"]["self"]
-        == "https://127.0.0.1:5000/api/search?page=1&q=blah&size=5&sort=newest"
+        == "http://localhost/search?page=1&q=blah&size=5&sort=newest"
     )
     assert (
         results["links"]["next"]
-        == "https://127.0.0.1:5000/api/search?page=2&q=blah&size=5&sort=newest"
+        == "http://localhost/search?page=2&q=blah&size=5&sort=newest"
     )
 
     result = GlobalSearchService().global_search(
@@ -118,11 +118,11 @@ def test_second_page(app, db, search_clear, identity_simple):
 
     assert (
         results["links"]["self"]
-        == "https://127.0.0.1:5000/api/search?page=2&q=blah&size=5&sort=newest"
+        == "http://localhost/search?page=2&q=blah&size=5&sort=newest"
     )
     assert (
         results["links"]["prev"]
-        == "https://127.0.0.1:5000/api/search?page=1&q=blah&size=5&sort=newest"
+        == "http://localhost/search?page=1&q=blah&size=5&sort=newest"
     )
 
 
