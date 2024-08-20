@@ -113,10 +113,10 @@ class GlobalSearchService(InvenioRecordService):
     def config(self, value):
         pass
 
-    def global_search_drafts(self, identity, params, *args, extra_filter=None, **kwargs):
+    def search_drafts(self, identity, params, *args, extra_filter=None, **kwargs):
         return self._global_search(identity, params, action="search_drafts", *args, extra_filter=extra_filter, **kwargs)
 
-    def global_search(self, identity, params, *args, extra_filter=None, **kwargs):
+    def search(self, identity, params, *args, extra_filter=None, **kwargs):
         # return ""
         return self._global_search(identity, params, action="search", *args, extra_filter=extra_filter, **kwargs)
 
@@ -205,7 +205,7 @@ class GlobalSearchService(InvenioRecordService):
 
         self.config.search.params_interpreters_cls.append(GlobalSearchStrParam)
 
-        hits = self.search(identity, params=combined_query)
+        hits = super().search(identity, params=combined_query)
 
         del hits._links_tpl.context["args"][
             "json"
