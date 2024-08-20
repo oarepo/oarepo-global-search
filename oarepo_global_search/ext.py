@@ -33,7 +33,7 @@ class OARepoGlobalSearch(object):
         self.app = app
         self.init_resources(app)
         app.extensions["global_search"] = self
-        app.extensions["global_search_service"] = GlobalSearchService
+        app.extensions["global_search_service"] = GlobalSearchService()
 
     @functools.cached_property
     def model_services(self):
