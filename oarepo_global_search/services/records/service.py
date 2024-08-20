@@ -118,9 +118,9 @@ class GlobalSearchService(InvenioRecordService):
 
     def search(self, identity, params, *args, extra_filter=None, **kwargs):
         # return ""
-        return self._global_search(identity, params, action="search", *args, extra_filter=extra_filter, **kwargs)
+        return self.global_search(identity, params, action="search", *args, extra_filter=extra_filter, **kwargs)
 
-    def _global_search(self, identity, params, action, *args, extra_filter=None, **kwargs):
+    def global_search(self, identity, params, action, *args, extra_filter=None, **kwargs):
 
         model_services = {}
         self.action = action
