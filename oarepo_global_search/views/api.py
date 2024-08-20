@@ -5,14 +5,6 @@ def create_global_search(app):
     return blueprint
 
 
-def create_global_user_search(app):
-    """Create requests blueprint."""
-    ext = app.extensions["global_search"]
-    blueprint = ext.global_user_search_resource.as_blueprint()
-    blueprint.record_once(init_create_api_blueprint)
-
-    return blueprint
-
 
 def init_create_api_blueprint(state):
     """Init app."""
