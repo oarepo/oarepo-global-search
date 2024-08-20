@@ -29,18 +29,16 @@ class GlobalSearchOptions(SearchOptions):
 class GlobalSearchService(InvenioRecordService):
     """GlobalSearchRecord service."""
 
-    action = "search"
+    components_def = None
 
     def __init__(self):
         super().__init__(None)
 
-    def indices(self ):
+    def indices(self):
         indices = []
         for service_dict in self.service_mapping:
             service = list(service_dict.keys())[0]
             indices.append(service.record_cls.index.search_alias)
-            if self.action == "search_drafts" and getattr(service, "draft_cls", None):
-                indices.append(service.draft_cls.index.search_alias)
         return indices
 
     def search_opts(self):
@@ -113,26 +111,20 @@ class GlobalSearchService(InvenioRecordService):
     def config(self, value):
         pass
 
-    def global_search_drafts(self, identity, params, *args, extra_filter=None, **kwargs):
-        return self._global_search(identity, params, action="search_drafts", *args, extra_filter=None, **kwargs)
-
     def global_search(self, identity, params, *args, extra_filter=None, **kwargs):
-        # return ""
-        return self._global_search(identity, params, action="search", *args, extra_filter=None, **kwargs)
-
-    def _global_search(self, identity, params, action, *args, extra_filter=None, **kwargs):
-
         model_services = {}
-        self.action = action
 
         # check if search is possible
         for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
-
             service_def = obj_or_import_string(model["model_service"])
-
             service_cfg = obj_or_import_string(model["service_config"])
             service = service_def(service_cfg())
 
+            service.create_search(
+                identity=identity,
+                record_cls=service.record_cls,
+                search_opts=service.config.search,
+            )
             service_dict = {
                 "record_cls": service.record_cls,
                 "search_opts": service.config.search,
@@ -152,8 +144,6 @@ class GlobalSearchService(InvenioRecordService):
                 del model_services[service]
         if model_services == {}:
             raise Forbidden()
-
-
         # get queries
         queries_list = {}
         for service, service_dict in model_services.items():
@@ -164,7 +154,7 @@ class GlobalSearchService(InvenioRecordService):
                 search_opts=service_dict["search_opts"],
                 extra_filter=extra_filter,
             )
-            if self.action == "search_drafts":
+            if self.components_def:
                 for component in service.components:
                     if hasattr(component, "search"):
                         search = getattr(component, "search")(identity, search, params)
@@ -204,7 +194,6 @@ class GlobalSearchService(InvenioRecordService):
             combined_query["size"] = params["size"]
 
         self.config.search.params_interpreters_cls.append(GlobalSearchStrParam)
-
         hits = self.search(identity, params=combined_query)
 
         del hits._links_tpl.context["args"][
@@ -218,7 +207,6 @@ class GlobalSearchService(InvenioRecordService):
             else:
                 for facet_name, facet_value in param_value.items():
                     self.add_param_to_links(hits, facet_name, facet_value)
-
         return hits
 
     def add_param_to_links(self, hits, param_name, param_value):
