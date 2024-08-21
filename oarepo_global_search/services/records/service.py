@@ -117,7 +117,6 @@ class GlobalSearchService(InvenioRecordService):
         return self.global_search(identity, params, action="search_drafts", *args, extra_filter=extra_filter, **kwargs)
 
     def search(self, identity, params, *args, extra_filter=None, **kwargs):
-        # return ""
         return self.global_search(identity, params, action="search", *args, extra_filter=extra_filter, **kwargs)
 
     def global_search(self, identity, params, action, *args, extra_filter=None, **kwargs):
