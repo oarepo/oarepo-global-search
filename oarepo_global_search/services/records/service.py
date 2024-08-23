@@ -173,8 +173,9 @@ class GlobalSearchService(InvenioRecordService):
                     if hasattr(component, "search_drafts"):
                         search = getattr(component, "search_drafts")(
                             identity, search, params
-            queries_list[service_dict["schema"]] = search.to_dict()
                         )
+            queries_list[service_dict["schema"]] = search.to_dict()
+                        
         # merge query
         combined_query = {
             "query": {"bool": {"should": [], "minimum_should_match": 1}},
