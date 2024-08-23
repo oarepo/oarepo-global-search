@@ -163,15 +163,16 @@ class GlobalSearchService(InvenioRecordService):
                 search_opts=service_dict["search_opts"],
                 extra_filter=extra_filter,
             )
-            if self.action == "search_drafts":
+            if self.action == "search":
                 for component in service.components:
                     if hasattr(component, "search"):
                         search = getattr(component, "search")(identity, search, params)
+
+            elif self.action == "search_drafts":
                 for component in service.components:
                     if hasattr(component, "search_drafts"):
                         search = getattr(component, "search_drafts")(
                             identity, search, params
-                        )
             queries_list[service_dict["schema"]] = search.to_dict()
 
         # merge query
