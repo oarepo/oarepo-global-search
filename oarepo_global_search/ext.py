@@ -8,11 +8,9 @@ from invenio_records_resources.proxies import current_service_registry
 
 from oarepo_global_search.resources.records.config import (
     GlobalSearchResourceConfig,
-    GlobalUserSearchResourceConfig,
 )
 from oarepo_global_search.resources.records.resource import GlobalSearchResource
 from oarepo_global_search.services.records.service import GlobalSearchService
-from oarepo_global_search.services.records.user_service import GlobalUserSearchService
 from oarepo_global_search.ui.config import (
     GlobalSearchUIResource,
     GlobalSearchUIResourceConfig,
@@ -23,7 +21,6 @@ class OARepoGlobalSearch(object):
     """OARepo DOI extension."""
 
     global_search_resource: GlobalSearchResource = None
-    global_user_search_resource: GlobalSearchResource = None
 
     def __init__(self, app=None):
         """Extension initialization."""
@@ -36,6 +33,7 @@ class OARepoGlobalSearch(object):
         self.app = app
         self.init_resources(app)
         app.extensions["global_search"] = self
+        app.extensions["global_search_service"] = GlobalSearchService()
 
     @functools.cached_property
     def model_services(self):
@@ -57,9 +55,6 @@ class OARepoGlobalSearch(object):
         """Init resources."""
         self.global_search_resource = GlobalSearchResource(
             config=GlobalSearchResourceConfig(), service=GlobalSearchService()
-        )
-        self.global_user_search_resource = GlobalSearchResource(
-            config=GlobalUserSearchResourceConfig(), service=GlobalUserSearchService()
         )
         self.global_search_ui_resource = GlobalSearchUIResource(
             config=GlobalSearchUIResourceConfig()

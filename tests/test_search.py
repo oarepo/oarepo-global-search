@@ -23,7 +23,7 @@ def test_description_search(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().global_search(
+    result = GlobalSearchService().search(
         system_identity,
         {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
@@ -51,7 +51,7 @@ def test_basic_search(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().global_search(
+    result = GlobalSearchService().search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
@@ -72,7 +72,7 @@ def test_links(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().global_search(
+    result = GlobalSearchService().search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
@@ -95,7 +95,7 @@ def test_second_page(app, db, search_clear, identity_simple):
         )
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().global_search(
+    result = GlobalSearchService().search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 1, "size": 5, "facets": {}},
     )
@@ -110,7 +110,7 @@ def test_second_page(app, db, search_clear, identity_simple):
         == "http://localhost/search?page=2&q=blah&size=5&sort=newest"
     )
 
-    result = GlobalSearchService().global_search(
+    result = GlobalSearchService().search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 2, "size": 5, "facets": {}},
     )
@@ -142,7 +142,7 @@ def test_zero_hits(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().global_search(
+    result = GlobalSearchService().search(
         system_identity,
         {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
@@ -167,7 +167,7 @@ def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().global_search(
+    result = GlobalSearchService().search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
@@ -194,7 +194,7 @@ def test_facets(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().global_search(
+    result = GlobalSearchService().search(
         system_identity,
         {
             "q": "",

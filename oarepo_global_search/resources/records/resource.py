@@ -25,24 +25,45 @@ class GlobalSearchResource(Resource, ErrorHandlersMixin):
         url_rules = [
             route("GET", routes["list"], self.search),
             route("POST", routes["list"], self.json_search),
+            route("GET", routes["user-list"], self.search_user),
+            route("POST", routes["user-list"], self.json_search_user),
         ]
         return url_rules
 
     @request_search_args
     @response_handler(many=True)
     def search(self):
-        items = self.service.global_search(g.identity, params=resource_requestctx.args)
+        items = self.service.search(g.identity, params=resource_requestctx.args)
         return items.to_dict(), 200
 
     @request_search_args
     @request_json_search_args
     @response_handler(many=True)
     def json_search(self):
-        items = self.service.global_search(
+        items = self.service.search(
             g.identity,
             params={
                 **resource_requestctx.args,
                 "advanced_query": resource_requestctx.data,
             },
+        )
+        return items.to_dict(), 200
+
+    @request_search_args
+    @response_handler(many=True)
+    def search_user(self):
+        items = self.service.search_drafts(g.identity, params=resource_requestctx.args)
+        return items.to_dict(), 200
+
+    @request_search_args
+    @request_json_search_args
+    @response_handler(many=True)
+    def json_search_user(self):
+        items = self.service.search_drafts(
+            g.identity,
+            params={
+                **resource_requestctx.args,
+                "advanced_query": resource_requestctx.data,
+            }
         )
         return items.to_dict(), 200
