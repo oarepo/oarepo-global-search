@@ -2,6 +2,10 @@
 {%- extends config.BASE_TEMPLATE %}
 {%- set title = _("Search results") %}
 
+{%- block javascript %}
+{{ super() }}
+{{ webpack['oarepo_global_search.js']}}
+{%- endblock javascript %}
 
 
 {%- block page_body %}

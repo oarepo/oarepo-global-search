@@ -1,0 +1,7 @@
+#
+msgid ""
+msgstr ""
+
+#: /home/dusanst/Projects/oarepo-global-search/oarepo_global_search/ui/templates/semantic-ui/global_search/Search.jinja:3
+msgid "Search results"
+msgstr ""
