@@ -1,7 +1,8 @@
-from flask import current_app
+from flask import current_app, g
 from invenio_base.utils import obj_or_import_string
 from oarepo_ui.resources import RecordsUIResource, RecordsUIResourceConfig
-
+from oarepo_ui.proxies import current_oarepo_ui
+from invenio_records_resources.resources.records.resource import request_search_args
 
 class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
     blueprint_name = "global_search_ui"
@@ -10,6 +11,7 @@ class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
     api_service = "records"
     templates = {
         "search": "global_search.Search",
+        "no-models": "global_search.NoModels",
     }
 
     application_id = "global_search"
@@ -30,7 +32,17 @@ class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
 
 
 class GlobalSearchUIResource(RecordsUIResource):
-    pass
+    @request_search_args
+    def search(self):
+        if len(current_app.config.get("GLOBAL_SEARCH_MODELS")) == 0:
+            return current_oarepo_ui.catalog.render(
+                self.get_jinjax_macro(
+                    "no-models",
+                    identity=g.identity,
+                )
+            )
+
+        return super().search()
 
 
 def create_blueprint(app):
