@@ -1,0 +1,18 @@
+{%- extends "oarepo_ui/search.html" %}
+{%- set title = _("Search results") %}
+
+
+{%- block page_body %}
+<div class="ui main container">
+    <h1>{{ _("Missing record models") }}</h1>
+    <div class="ui attached icon message">
+        <i class="info icon"></i>
+        <div class="content">
+            <p>{{ _("It looks like you haven't configured any record model yet, which is required to enable search functionality. Without a configured record model, searches cannot be performed. To get started, please refer to the documentation page for detailed instructions on how to add and configure a record model:")}}</p>
+            <a class="ui primary button" href="https://nrp-cz.github.io/docs/customize/record/new_model" rel="noopener noreferrer">
+                <i class="book icon"></i> {{ _("Create record model") }}
+            </a>
+        </div>
+    </div>
+</div>
+{%- endblock page_body %}
