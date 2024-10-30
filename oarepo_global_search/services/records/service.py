@@ -20,7 +20,7 @@ from .api import GlobalSearchRecord
 from .exceptions import InvalidServicesError
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
-
+from flask import current_app
 
 class GlobalSearchOptions(SearchOptions):
     """Search options."""
@@ -129,8 +129,13 @@ class GlobalSearchService(InvenioRecordService):
 
             service_def = obj_or_import_string(model["model_service"])
 
-            service_cfg = obj_or_import_string(model["service_config"])
-            service = service_def(service_cfg())
+            _service_cfg = obj_or_import_string(model["service_config"])
+            if hasattr(_service_cfg, "build"):
+                service_cfg = _service_cfg.build(current_app)
+            else:
+                service_cfg = _service_cfg()
+
+            service = service_def(service_cfg)
 
             service_dict = {
                 "record_cls": service.record_cls,

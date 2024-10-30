@@ -3,7 +3,7 @@
 set -e
 
 OAREPO_VERSION=${OAREPO_VERSION:-12}
-PYTHON=${PYTHON:-python3}
+PYTHON=${PYTHON:-python3.12}
 
 if [ -d .venv-builder ] ; then
     rm -rf .venv-builder
