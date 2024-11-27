@@ -15,15 +15,26 @@ from werkzeug.exceptions import Forbidden
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
+from invenio_records_resources.services.records.params import (
+    PaginationParam,
+    QueryStrParam,
+)
 
 from .api import GlobalSearchRecord
 from .exceptions import InvalidServicesError
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
 from flask import current_app
+from oarepo_runtime.services.facets.params import GroupedFacetsParam
 
 class GlobalSearchOptions(SearchOptions):
     """Search options."""
+    params_interpreters_cls = [
+        QueryStrParam,
+        PaginationParam,
+        GroupedFacetsParam,
+        GlobalSearchStrParam
+    ]
 
 
 class GlobalSearchService(InvenioRecordService):
@@ -208,8 +219,6 @@ class GlobalSearchService(InvenioRecordService):
             combined_query["page"] = params["page"]
         if "size" in params:
             combined_query["size"] = params["size"]
-
-        self.config.search.params_interpreters_cls.append(GlobalSearchStrParam)
 
         hits = super().search(identity, params=combined_query)
 

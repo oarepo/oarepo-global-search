@@ -15,5 +15,6 @@ class GlobalSearchStrParam(ParamInterpreter):
             search = search.query(query)
             if post_filter != {}:
                 search = search.post_filter(post_filter)
-
+            if params["json"].get("sort"):
+                search = search.sort(params["json"]["sort"][0])
         return search
