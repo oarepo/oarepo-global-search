@@ -2,6 +2,7 @@ from invenio_records_resources.services import LinksTemplate
 from invenio_records_resources.services.records.results import (
     RecordList as BaseRecordList,
 )
+from collections import defaultdict
 
 
 class GlobalSearchResultList(BaseRecordList):
@@ -22,31 +23,25 @@ class GlobalSearchResultList(BaseRecordList):
     @property
     def hits(self):
         """Iterator over the hits."""
-        records = []
-        hits_array = []
-        order = []
-        for hit in self._results:
+
+        # get json $schema to service mapping
+        schema_to_service = {}
+        for service_dict in self.services:
+            for service, schema in service_dict.items():
+                schema_to_service[schema] = service
+
+        # group hits by schema and log order
+        hits_by_schema = defaultdict(list)
+        id_to_order: dict[str, int] = {}
+        for idx, hit in enumerate(self._results):
             # log order
-            order.append(hit.id)
+            id_to_order[hit.id] = idx
+            hits_by_schema[hit["$schema"]].append(hit)
 
-            for service_dict in self.services:
-                for service, schema in service_dict.items():
-                    if hit["$schema"] == schema:
-                        schema_exists = False
-                        for s in hits_array:
-                            if schema in s:
-                                s[schema].append(hit)
-                                schema_exists = True
-                        if not schema_exists:
-                            hits_array.append({schema: [hit]})
-        for hit_dict in hits_array:
-            schema = list(hit_dict.keys())[0]
-            hits = hit_dict[schema]
-            for s in self.services:
-                sc = next(iter(s.values()))
-                if sc == schema:
-                    service = list(s.keys())[0]
-
+        # for each schema, convert the results using their result list and gather them to records variable
+        records = []
+        for schema, hits in hits_by_schema.items():
+            service = schema_to_service[schema]
             results = service.result_list(
                 service,
                 self._identity,
@@ -61,7 +56,6 @@ class GlobalSearchResultList(BaseRecordList):
             )
             records.extend(list(results))
 
-        sorted_hits = sorted(records, key=lambda x: order.index(x["id"]))
-
-        for hit in sorted_hits:
-            yield hit
+        # sort the records by the original order
+        records.sort(key=lambda x: id_to_order[x["id"]])
+        return records
