@@ -74,13 +74,13 @@ def test_links(app, db, search_clear, identity_simple):
 
     result = GlobalSearchService().search(
         system_identity,
-        {"q": "blah", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
+        {"q": "blah", "sort": "bestmatch", "page": 1, "size": 20, "facets": {}},
     )
     results = result.to_dict()
 
     assert (
         results["links"]["self"]
-        == "http://localhost/search?page=1&q=blah&size=10&sort=bestmatch"
+        == "http://localhost/search?page=1&q=blah&size=20&sort=bestmatch"
     )
     assert results["hits"]["hits"][0]["links"]["self"].startswith(
         "http://localhost/modelb/"

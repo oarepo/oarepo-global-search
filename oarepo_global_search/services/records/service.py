@@ -223,8 +223,10 @@ class GlobalSearchService(InvenioRecordService):
         hits = super().search(identity, params=combined_query)
 
         del hits._links_tpl.context["args"][
-            "json"
-        ]  # to get rid of the json arg from url
+            "json"  # to get rid of the json arg from url
+        ]
+        if "sort" in params:
+            hits._links_tpl.context["args"]["sort"] = params["sort"]
 
         # add the original parameters to the pagination links
         for param_name, param_value in params.items():
