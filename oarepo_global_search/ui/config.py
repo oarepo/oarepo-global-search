@@ -4,6 +4,7 @@ from oarepo_ui.resources import RecordsUIResource, RecordsUIResourceConfig
 from oarepo_ui.proxies import current_oarepo_ui
 from invenio_records_resources.resources.records.resource import request_search_args
 
+
 class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
     blueprint_name = "global_search_ui"
     url_prefix = "/search"
@@ -25,9 +26,14 @@ class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
             service_def = obj_or_import_string(definition["model_service"])
             service_cfg = obj_or_import_string(definition["service_config"])
             service = service_def(service_cfg())
-            default_components[service.record_cls.schema.value] = getattr(
-                ui_resource, "search_component", None
-            )
+            resource_components = getattr(ui_resource, "search_components", None)
+            if resource_components:
+                for key, value in resource_components.items():
+                    if key == "ResultsList.item" or key == "ResultsGrid.item":
+                        key_with_schema = f"{key}.{service.record_cls.schema.value}"
+                        default_components[key_with_schema] = value
+                    else:
+                        default_components[key] = value
         return default_components
 
 
