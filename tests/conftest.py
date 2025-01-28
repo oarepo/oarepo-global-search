@@ -3,6 +3,7 @@ import os
 import pytest
 from flask_principal import Identity, Need, UserNeed
 from invenio_app.factory import create_api
+from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
 
 @pytest.fixture(scope="module")
@@ -47,7 +48,17 @@ def app_config(app_config):
             "model_service": "modelb.services.records.service.ModelbService",
             "service_config": "modelb.services.records.config.ModelbServiceConfig",
         },
+        {
+            "model_service": "modelc.services.records.service.ModelcService",
+            "service_config": "modelc.services.records.config.ModelcServiceConfig",
+        },
     ]
     app_config["SITE_API_URL"] = "http://localhost"
 
     return app_config
+
+
+@pytest.fixture()
+def custom_fields():
+    prepare_cf_indices()
+
