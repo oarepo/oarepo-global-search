@@ -1,0 +1,15 @@
+record:
+    use: invenio
+    module:
+        qualified: modelc
+    properties:
+        metadata:
+            properties:
+                title: keyword
+                bdescription: keyword
+    draft: {}
+profiles:
+ - record
+ - draft
+settings:
+    schema-server: 'local://'
