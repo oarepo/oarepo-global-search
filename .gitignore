@@ -74,6 +74,8 @@ oarepo-vocabularies-monorepo.code-workspace
 
 model-a
 model-b
+model-c
 .venv-builder
 .venv-tests
 .venvp
+.env

@@ -1,4 +1,5 @@
 import copy
+from contextvars import ContextVar
 
 from flask import current_app, has_app_context
 from invenio_base.utils import obj_or_import_string
@@ -8,24 +9,24 @@ from invenio_records_resources.services import (
     RecordServiceConfig as InvenioRecordServiceConfig,
 )
 from invenio_records_resources.services import pagination_links
+from invenio_records_resources.services.records.params import (
+    PaginationParam,
+    QueryStrParam,
+)
 from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
+from oarepo_runtime.services.facets.params import GroupedFacetsParam
 from oarepo_runtime.services.search import SearchOptions
 from werkzeug.exceptions import Forbidden
 
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
-from invenio_records_resources.services.records.params import (
-    PaginationParam,
-    QueryStrParam,
-)
 
 from .api import GlobalSearchRecord
 from .exceptions import InvalidServicesError
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
-from flask import current_app
-from oarepo_runtime.services.facets.params import GroupedFacetsParam
+
 
 class GlobalSearchOptions(SearchOptions):
     """Search options."""
@@ -36,6 +37,8 @@ class GlobalSearchOptions(SearchOptions):
         GlobalSearchStrParam
     ]
 
+current_action = ContextVar('current_action')
+current_config = ContextVar('current_config')
 
 class GlobalSearchService(InvenioRecordService):
     """GlobalSearchRecord service."""
@@ -45,12 +48,12 @@ class GlobalSearchService(InvenioRecordService):
     def __init__(self):
         super().__init__(None)
 
-    def indices(self ):
+    def indices(self):
         indices = []
         for service_dict in self.service_mapping:
             service = list(service_dict.keys())[0]
             indices.append(service.record_cls.index.search_alias)
-            if self.action == "search_drafts" and getattr(service, "draft_cls", None):
+            if current_action.get() == "search_drafts" and getattr(service, "draft_cls", None):
                 indices.append(service.draft_cls.index.search_alias)
         return indices
 
@@ -96,6 +99,10 @@ class GlobalSearchService(InvenioRecordService):
 
     @property
     def config(self):
+        stored_config = current_config.get()
+        if stored_config:
+            return stored_config
+        
         GlobalSearchRecord.index = IndexField(self.indices())
         GlobalSearchResultList.services = self.service_mapping
         search_opts = self.search_opts()
@@ -105,6 +112,13 @@ class GlobalSearchService(InvenioRecordService):
         GlobalSearchOptions.sort_default = search_opts["sort_default"]
         GlobalSearchOptions.sort_default_no_query = search_opts["sort_default_no_query"]
 
+        if current_action.get() == "search_drafts":
+            url_prefix = '/user/search'
+            links_search = pagination_links("{+api}/user/search{?args*}")
+        else:
+            url_prefix = '/search'
+            links_search = pagination_links("{+api}/search{?args*}")
+
         config_class = type(
             "GlobalSearchServiceConfig",
             (PermissionsPresetsConfigMixin, InvenioRecordServiceConfig),
@@ -113,30 +127,38 @@ class GlobalSearchService(InvenioRecordService):
                 "base_permission_policy_cls": GlobalSearchPermissionPolicy,
                 "result_list_cls": GlobalSearchResultList,
                 "record_cls": GlobalSearchRecord,
-                "url_prefix": "/search",
-                "links_search": pagination_links("{+api}/search{?args*}"),
+                "url_prefix": url_prefix,
+                "links_search": links_search,
                 "search": GlobalSearchOptions,
             },
         )
-        return config_class()
+        stored_config = config_class()
+        current_config.set(stored_config)
+        return stored_config
+        
 
     @config.setter
     def config(self, value):
         pass
 
     def search_drafts(self, identity, params, *args, extra_filter=None, **kwargs):
-        return self.global_search(identity, params, action="search_drafts", *args, extra_filter=extra_filter, **kwargs)
+        return self.global_search(identity, params, action="search_drafts", 
+                                  permission_action="read_draft", versioning=True,
+                                  *args, extra_filter=extra_filter, **kwargs)
 
     def search(self, identity, params, *args, extra_filter=None, **kwargs):
-        return self.global_search(identity, params, action="search", *args, extra_filter=extra_filter, **kwargs)
+        return self.global_search(identity, params, action="search", 
+                                  permission_action="read", versioning=True, 
+                                  *args, extra_filter=extra_filter, **kwargs)
 
-    def global_search(self, identity, params, action, *args, extra_filter=None, **kwargs):
+    def global_search(self, identity, params, action, permission_action, versioning, *args, extra_filter=None, **kwargs):
 
         model_services = {}
-        self.action = action
+        current_action.set(action)
+        current_config.set(None)
 
         # check if search is possible
-        for model in current_app.config.get("GLOBAL_SEARCH_MODELS"):
+        for model in current_app.config.get("GLOBAL_SEARCH_MODELS", []):
 
             service_def = obj_or_import_string(model["model_service"])
 
@@ -178,13 +200,15 @@ class GlobalSearchService(InvenioRecordService):
                 record_cls=service_dict["record_cls"],
                 search_opts=service_dict["search_opts"],
                 extra_filter=extra_filter,
+                permission_action=permission_action,
+                versioning=versioning,
             )
-            if self.action == "search":
+            if action == "search":
                 for component in service.components:
                     if hasattr(component, "search"):
                         search = getattr(component, "search")(identity, search, params)
 
-            elif self.action == "search_drafts":
+            elif action == "search_drafts":
                 for component in service.components:
                     if hasattr(component, "search_drafts"):
                         search = getattr(component, "search_drafts")(
