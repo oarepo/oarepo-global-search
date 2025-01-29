@@ -53,7 +53,7 @@ class GlobalSearchService(InvenioRecordService):
         for service_dict in self.service_mapping:
             service = list(service_dict.keys())[0]
             indices.append(service.record_cls.index.search_alias)
-            if current_action.get() == "search_drafts" and getattr(service, "draft_cls", None):
+            if current_action.get("search") == "search_drafts" and getattr(service, "draft_cls", None):
                 indices.append(service.draft_cls.index.search_alias)
         return indices
 
@@ -99,7 +99,7 @@ class GlobalSearchService(InvenioRecordService):
 
     @property
     def config(self):
-        stored_config = current_config.get()
+        stored_config = current_config.get(None)
         if stored_config:
             return stored_config
         
@@ -112,7 +112,7 @@ class GlobalSearchService(InvenioRecordService):
         GlobalSearchOptions.sort_default = search_opts["sort_default"]
         GlobalSearchOptions.sort_default_no_query = search_opts["sort_default_no_query"]
 
-        if current_action.get() == "search_drafts":
+        if current_action.get("search") == "search_drafts":
             url_prefix = '/user/search'
             links_search = pagination_links("{+api}/user/search{?args*}")
         else:
