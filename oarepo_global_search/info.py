@@ -6,7 +6,7 @@ class GlobalSearchInfoComponent:
         pass
 
     def repository(self, *, data):
-        data["links"]["records"] = api_url_for(f"global_search.search", _external=True)
-        data["links"]["user_records"] = api_url_for(
-            f"global_search.search_user", _external=True
+        data["links"]["records"] = api_url_for("global_search.search", _external=True)
+        data["links"]["drafts"] = api_url_for(
+            "global_search.search_user", _external=True
         )
