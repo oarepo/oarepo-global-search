@@ -221,20 +221,25 @@ class GlobalSearchService(InvenioRecordService):
                 "schema": service.record_cls.schema.value,
             }
 
-            # clone the service and patch its search method
-            # not to query the opensearch, just return the query
-            service = copy.copy(service)
-            previous_search = service._search
+            # Clone the service and patch its search method
+            # to avoid querying OpenSearch and simply return the query.
+            # This is wrapped in a function to ensure proper closure behavior.
+            def patch_service(service):
+                previous_search = service._search
 
-            def _patched_search(*args, **kwargs):
-                ret = previous_search(*args, **kwargs)
-                return NoExecute(ret)
+                def _patched_search(*args, **kwargs):
+                    ret = previous_search(*args, **kwargs)
+                    return NoExecute(ret)
 
-            def _patched_result_list(self, identity, results, params, **kwargs):
-                return results
+                def _patched_result_list(self, identity, results, params, **kwargs):
+                    return results
 
-            service._search = _patched_search
-            service.result_list = _patched_result_list
+                service._search = _patched_search
+                service.result_list = _patched_result_list
+                return service
+
+            service = patch_service(service)
+            
             model_services[service] = service_dict
 
         model_services = {service: v for service, v in model_services.items()}
@@ -272,10 +277,11 @@ class GlobalSearchService(InvenioRecordService):
 
         queries_list = {}
         for service, service_dict in model_services.items():
+
             if action == "search_drafts" and hasattr(service, "search_drafts"):
                 search = service.search_drafts(
                     identity,
-                    params=params,
+                    params=copy.deepcopy(params),
                     search_preference=search_preference,
                     expand=expand,
                     extra_filter=extra_filter,
@@ -284,7 +290,7 @@ class GlobalSearchService(InvenioRecordService):
             else:
                 search = service.search(
                     identity,
-                    params=params,
+                    params=copy.deepcopy(params),
                     search_preference=search_preference,
                     expand=expand,
                     extra_filter=extra_filter,
