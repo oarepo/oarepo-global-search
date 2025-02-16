@@ -26,6 +26,7 @@ from .api import GlobalSearchRecord
 from .exceptions import InvalidServicesError
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
+from invenio_drafts_resources.resources.records.args import SearchRequestArgsSchema
 
 
 class GlobalSearchOptions(SearchOptions):
@@ -111,7 +112,6 @@ class GlobalSearchService(InvenioRecordService):
         GlobalSearchOptions.sort_options = search_opts["sort_options"]
         GlobalSearchOptions.sort_default = search_opts["sort_default"]
         GlobalSearchOptions.sort_default_no_query = search_opts["sort_default_no_query"]
-
         if current_action.get("search") == "search_drafts":
             url_prefix = '/user/search'
             links_search = pagination_links("{+api}/user/search{?args*}")

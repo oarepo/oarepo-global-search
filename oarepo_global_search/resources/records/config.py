@@ -3,6 +3,7 @@ from invenio_base.utils import obj_or_import_string
 from invenio_records_resources.resources.records.config import RecordResourceConfig
 
 from .response import GlobalSearchResponseHandler
+from invenio_drafts_resources.resources.records.args import SearchRequestArgsSchema
 
 
 class GlobalSearchResourceConfig(RecordResourceConfig):
@@ -12,6 +13,7 @@ class GlobalSearchResourceConfig(RecordResourceConfig):
         "list": "/search/",
         "user-list": "/user/search/",
     }
+    request_search_args = SearchRequestArgsSchema
 
     @property
     def response_handlers(self):
