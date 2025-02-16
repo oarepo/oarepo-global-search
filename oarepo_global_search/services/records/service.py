@@ -1,5 +1,6 @@
 import copy
 from contextvars import ContextVar
+from functools import cached_property
 
 from flask import current_app, has_app_context
 from invenio_base.utils import obj_or_import_string
@@ -26,20 +27,30 @@ from .api import GlobalSearchRecord
 from .exceptions import InvalidServicesError
 from .params import GlobalSearchStrParam
 from .results import GlobalSearchResultList
-from invenio_drafts_resources.resources.records.args import SearchRequestArgsSchema
 
 
 class GlobalSearchOptions(SearchOptions):
     """Search options."""
+
     params_interpreters_cls = [
         QueryStrParam,
         PaginationParam,
         GroupedFacetsParam,
-        GlobalSearchStrParam
+        GlobalSearchStrParam,
     ]
 
-current_action = ContextVar('current_action')
-current_config = ContextVar('current_config')
+
+current_action = ContextVar("current_action")
+current_config = ContextVar("current_config")
+
+
+class NoExecute:
+    def __init__(self, query):
+        self.query = query
+
+    def execute(self):
+        return self.query
+
 
 class GlobalSearchService(InvenioRecordService):
     """GlobalSearchRecord service."""
@@ -54,7 +65,9 @@ class GlobalSearchService(InvenioRecordService):
         for service_dict in self.service_mapping:
             service = list(service_dict.keys())[0]
             indices.append(service.record_cls.index.search_alias)
-            if current_action.get("search") == "search_drafts" and getattr(service, "draft_cls", None):
+            if current_action.get("search") == "search_drafts" and getattr(
+                service, "draft_cls", None
+            ):
                 indices.append(service.draft_cls.index.search_alias)
         return indices
 
@@ -103,7 +116,7 @@ class GlobalSearchService(InvenioRecordService):
         stored_config = current_config.get(None)
         if stored_config:
             return stored_config
-        
+
         GlobalSearchRecord.index = IndexField(self.indices())
         GlobalSearchResultList.services = self.service_mapping
         search_opts = self.search_opts()
@@ -113,10 +126,10 @@ class GlobalSearchService(InvenioRecordService):
         GlobalSearchOptions.sort_default = search_opts["sort_default"]
         GlobalSearchOptions.sort_default_no_query = search_opts["sort_default_no_query"]
         if current_action.get("search") == "search_drafts":
-            url_prefix = '/user/search'
+            url_prefix = "/user/search"
             links_search = pagination_links("{+api}/user/search{?args*}")
         else:
-            url_prefix = '/search'
+            url_prefix = "/search"
             links_search = pagination_links("{+api}/search{?args*}")
 
         config_class = type(
@@ -135,31 +148,63 @@ class GlobalSearchService(InvenioRecordService):
         stored_config = config_class()
         current_config.set(stored_config)
         return stored_config
-        
 
     @config.setter
     def config(self, value):
         pass
 
-    def search_drafts(self, identity, params, *args, extra_filter=None, **kwargs):
-        return self.global_search(identity, params, action="search_drafts", 
-                                  permission_action="read_draft", versioning=True,
-                                  *args, extra_filter=extra_filter, **kwargs)
+    def search_drafts(
+        self,
+        identity,
+        params,
+        *args,
+        extra_filter=None,
+        search_preference=None,
+        expand=False,
+        **kwargs,
+    ):
+        return self.global_search(
+            identity,
+            params,
+            action="search_drafts",
+            permission_action="read_draft",
+            versioning=True,
+            *args,
+            extra_filter=extra_filter,
+            search_preference=search_preference,
+            expand=expand,
+            **kwargs,
+        )
 
-    def search(self, identity, params, *args, extra_filter=None, **kwargs):
-        return self.global_search(identity, params, action="search", 
-                                  permission_action="read", versioning=True, 
-                                  *args, extra_filter=extra_filter, **kwargs)
+    def search(
+        self,
+        identity,
+        params,
+        *args,
+        extra_filter=None,
+        search_preference=None,
+        expand=False,
+        **kwargs,
+    ):
+        return self.global_search(
+            identity,
+            params,
+            action="search",
+            permission_action="read",
+            versioning=True,
+            *args,
+            extra_filter=extra_filter,
+            search_preference=search_preference,
+            expand=expand,
+            **kwargs,
+        )
 
-    def global_search(self, identity, params, action, permission_action, versioning, *args, extra_filter=None, **kwargs):
-
+    @cached_property
+    def model_services(self):
         model_services = {}
-        current_action.set(action)
-        current_config.set(None)
 
         # check if search is possible
         for model in current_app.config.get("GLOBAL_SEARCH_MODELS", []):
-
             service_def = obj_or_import_string(model["model_service"])
 
             _service_cfg = obj_or_import_string(model["service_config"])
@@ -175,11 +220,46 @@ class GlobalSearchService(InvenioRecordService):
                 "search_opts": service.config.search,
                 "schema": service.record_cls.schema.value,
             }
+
+            # clone the service and patch its search method
+            # not to query the opensearch, just return the query
+            service = copy.copy(service)
+            previous_search = service._search
+
+            def _patched_search(*args, **kwargs):
+                ret = previous_search(*args, **kwargs)
+                return NoExecute(ret)
+
+            def _patched_result_list(self, identity, results, params, **kwargs):
+                return results
+
+            service._search = _patched_search
+            service.result_list = _patched_result_list
             model_services[service] = service_dict
 
         model_services = {service: v for service, v in model_services.items()}
         if model_services == {}:
             raise InvalidServicesError
+
+        return model_services
+
+    def global_search(
+        self,
+        identity,
+        params,
+        action,
+        permission_action,
+        versioning,
+        *args,
+        extra_filter=None,
+        search_preference=None,
+        expand=False,
+        **kwargs,
+    ):
+        current_action.set(action)
+        current_config.set(None)
+
+        model_services = self.model_services
 
         for service in list(model_services.keys()):
             if hasattr(service, "check_permission"):
@@ -190,32 +270,28 @@ class GlobalSearchService(InvenioRecordService):
         if model_services == {}:
             raise Forbidden()
 
-
-        # get queries
         queries_list = {}
         for service, service_dict in model_services.items():
-            search = service.search_request(
-                identity=identity,
-                params=copy.deepcopy(params),
-                record_cls=service_dict["record_cls"],
-                search_opts=service_dict["search_opts"],
-                extra_filter=extra_filter,
-                permission_action=permission_action,
-                versioning=versioning,
-            )
-            if action == "search":
-                for component in service.components:
-                    if hasattr(component, "search"):
-                        search = getattr(component, "search")(identity, search, params)
-
-            elif action == "search_drafts":
-                for component in service.components:
-                    if hasattr(component, "search_drafts"):
-                        search = getattr(component, "search_drafts")(
-                            identity, search, params
-                        )
+            if action == "search_drafts" and hasattr(service, "search_drafts"):
+                search = service.search_drafts(
+                    identity,
+                    params=params,
+                    search_preference=search_preference,
+                    expand=expand,
+                    extra_filter=extra_filter,
+                    **kwargs,
+                )
+            else:
+                search = service.search(
+                    identity,
+                    params=params,
+                    search_preference=search_preference,
+                    expand=expand,
+                    extra_filter=extra_filter,
+                    **kwargs,
+                )
             queries_list[service_dict["schema"]] = search.to_dict()
-                        
+
         # merge query
         combined_query = {
             "query": {"bool": {"should": [], "minimum_should_match": 1}},
