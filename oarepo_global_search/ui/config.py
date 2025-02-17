@@ -4,6 +4,7 @@ from oarepo_ui.resources import RecordsUIResource, RecordsUIResourceConfig
 from oarepo_ui.proxies import current_oarepo_ui
 from invenio_records_resources.resources.records.resource import request_search_args
 
+
 class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
     blueprint_name = "global_search_ui"
     url_prefix = "/search"
@@ -43,6 +44,18 @@ class GlobalSearchUIResource(RecordsUIResource):
             )
 
         return super().search()
+
+    @request_search_args
+    def search_without_slash(self):
+        if len(current_app.config.get("GLOBAL_SEARCH_MODELS")) == 0:
+            return current_oarepo_ui.catalog.render(
+                self.get_jinjax_macro(
+                    "no-models",
+                    identity=g.identity,
+                )
+            )
+
+        return super().search_without_slash()
 
 
 def create_blueprint(app):
