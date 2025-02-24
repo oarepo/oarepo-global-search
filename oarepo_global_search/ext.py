@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import functools
 import json
 from pathlib import Path
@@ -15,6 +17,8 @@ from oarepo_global_search.ui.config import (
     GlobalSearchUIResource,
     GlobalSearchUIResourceConfig,
 )
+if TYPE_CHECKING:
+    from flask import Flask
 
 
 class OARepoGlobalSearch(object):
@@ -69,3 +73,13 @@ class OARepoGlobalSearch(object):
         app.config.setdefault("INFO_ENDPOINT_COMPONENTS", []).append(
             "oarepo_global_search.info:GlobalSearchInfoComponent"
         )
+
+
+def api_finalize_app(app: Flask) -> None:
+    """Finalize app."""
+    finalize_app(app)
+
+
+def finalize_app(app: Flask) -> None:
+    """Finalize app."""
+    #service_config =

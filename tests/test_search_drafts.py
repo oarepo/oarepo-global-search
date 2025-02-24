@@ -4,6 +4,36 @@ from modelc.records.api import ModelcDraft
 
 from oarepo_global_search.services.records.service import GlobalSearchService
 
+def test_description_no_params(app, db, search_clear, custom_fields, identity_simple):
+    modelc_record0 = modelc_service.create(
+        system_identity,
+        {"metadata": {"title": "blah", "bdescription": "bbb"}},
+    )
+    modelc_record1 = modelc_service.create(
+        identity_simple,
+        {"metadata": {"title": "blah", "bdescription": "kch"}},
+    )
+    modelc_record2 = modelc_service.create(
+        identity_simple,
+        {"metadata": {"title": "aaaaa", "bdescription": "jej"}},
+    )
+    ModelcDraft.index.refresh()
+
+    result_without_query = GlobalSearchService().search_drafts(
+        system_identity,
+        {}
+    )
+
+    result_with_query = GlobalSearchService().search_drafts(
+        system_identity,
+        {"q": "jej"}
+    )
+
+    assert len(result_with_query.to_dict()["hits"]["hits"]) == 1
+    assert result_with_query.to_dict()['links']['self'] == 'http://localhost/user/search?page=1&q=jej&size=25&sort=bestmatch'
+    assert result_without_query.to_dict()['links']['self'] == 'http://localhost/user/search?page=1&size=25&sort=updated-desc'
+
+
 
 def test_description_search(app, db, search_clear, custom_fields, identity_simple):
     modelc_record0 = modelc_service.create(

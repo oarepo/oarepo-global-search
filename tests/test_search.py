@@ -3,9 +3,33 @@ from modela.proxies import current_service as modela_service
 from modela.records.api import ModelaRecord
 from modelb.proxies import current_service as modelb_service
 from modelb.records.api import ModelbRecord
-
+from modelc.proxies import current_service as modelc_service
+from modelc.records.api import ModelcDraft
 from oarepo_global_search.services.records.service import GlobalSearchService
 
+
+def test_description_no_params(app, db, search_clear, custom_fields, identity_simple):
+    modelc_record0 = modelc_service.create(
+        system_identity,
+        {"metadata": {"title": "blah", "bdescription": "bbb"}},
+    )
+    modelc_record1 = modelc_service.create(
+        identity_simple,
+        {"metadata": {"title": "blah", "bdescription": "kch"}},
+    )
+    modelc_record2 = modelc_service.create(
+        identity_simple,
+        {"metadata": {"title": "aaaaa", "bdescription": "jej"}},
+    )
+    ModelcDraft.index.refresh()
+
+    result = GlobalSearchService().search(
+        system_identity,
+        {"q": "jej"}
+    )
+    results = result.to_dict()
+    assert len(results["hits"]["hits"]) == 1
+    assert results['links']['self'] == 'http://localhost/search?page=1&q=jej&size=25&sort=newest'
 
 def test_description_search(app, db, search_clear, identity_simple):
     modela_record1 = modela_service.create(

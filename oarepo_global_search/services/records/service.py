@@ -2,6 +2,7 @@ import copy
 from contextvars import ContextVar
 from functools import cached_property
 
+from deepmerge import always_merger
 from flask import current_app, has_app_context
 from invenio_base.utils import obj_or_import_string
 from invenio_records_resources.records.systemfields import IndexField
@@ -22,7 +23,6 @@ from werkzeug.exceptions import Forbidden
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
-
 from .api import GlobalSearchRecord
 from .exceptions import InvalidServicesError
 from .params import GlobalSearchStrParam
@@ -39,10 +39,14 @@ class GlobalSearchOptions(SearchOptions):
         GlobalSearchStrParam,
     ]
 
+class GlobalSearchDraftsOptions(GlobalSearchOptions):
+    """Search drafts options."""
 
+
+"""
 current_action = ContextVar("current_action")
 current_config = ContextVar("current_config")
-
+"""
 
 class NoExecute:
     def __init__(self, query):
@@ -65,28 +69,23 @@ class GlobalSearchService(InvenioRecordService):
         for service_dict in self.service_mapping:
             service = list(service_dict.keys())[0]
             indices.append(service.record_cls.index.search_alias)
-            if current_action.get("search") == "search_drafts" and getattr(
-                service, "draft_cls", None
-            ):
+            #if current_action.get("search") == "search_drafts" and getattr( # todo by default we search drafts too and there are other ways to eventually omit them than on index level?
+            if getattr(service, "draft_cls", None):
                 indices.append(service.draft_cls.index.search_alias)
         return indices
 
-    def search_opts(self):
+    def _search_opts_from_search_obj(self, search):
         facets = {}
-        facet_groups = {}
         sort_options = {}
-        sort_default = ""
-        sort_default_no_query = ""
-        for service_dict in self.service_mapping:
-            service = list(service_dict.keys())[0]
-            facets.update(service.config.search.facets)
-            try:
-                sort_options.update(service.config.search.sort_options)
-            except:
-                pass
-            sort_default = service.config.search.sort_default
-            sort_default_no_query = service.config.search.sort_default_no_query
-            facet_groups = service.config.search.facet_groups
+
+        facets.update(search.facets)
+        try:
+            sort_options.update(search.sort_options)
+        except:
+            pass
+        sort_default = search.sort_default
+        sort_default_no_query = search.sort_default_no_query
+        facet_groups = search.facet_groups
         return {
             "facets": facets,
             "facet_groups": facet_groups,
@@ -94,6 +93,22 @@ class GlobalSearchService(InvenioRecordService):
             "sort_default": sort_default,
             "sort_default_no_query": sort_default_no_query,
         }
+
+    def _search_opts(self, config_field):
+        ret = {}
+        for service_dict in self.service_mapping:
+            service = list(service_dict.keys())[0]
+            if hasattr(service.config, config_field):
+                ret = always_merger.merge(ret, self._search_opts_from_search_obj(getattr(service.config, config_field)))
+        return ret
+
+    def fill_search_opts(self, search_opts_cls, search_opts):
+        search_opts_cls.facets = search_opts["facets"]
+        search_opts_cls.facet_groups = search_opts["facet_groups"]
+        search_opts_cls.sort_options = search_opts["sort_options"]
+        search_opts_cls.sort_default = search_opts["sort_default"]
+        search_opts_cls.sort_default_no_query = search_opts["sort_default_no_query"]
+        return search_opts_cls
 
     @property
     def indexer(self):
@@ -113,24 +128,26 @@ class GlobalSearchService(InvenioRecordService):
 
     @property
     def config(self):
+        """
         stored_config = current_config.get(None)
         if stored_config:
             return stored_config
+        """
 
         GlobalSearchRecord.index = IndexField(self.indices())
         GlobalSearchResultList.services = self.service_mapping
-        search_opts = self.search_opts()
-        GlobalSearchOptions.facets = search_opts["facets"]
-        GlobalSearchOptions.facet_groups = search_opts["facet_groups"]
-        GlobalSearchOptions.sort_options = search_opts["sort_options"]
-        GlobalSearchOptions.sort_default = search_opts["sort_default"]
-        GlobalSearchOptions.sort_default_no_query = search_opts["sort_default_no_query"]
-        if current_action.get("search") == "search_drafts":
-            url_prefix = "/user/search"
-            links_search = pagination_links("{+api}/user/search{?args*}")
-        else:
-            url_prefix = "/search"
-            links_search = pagination_links("{+api}/search{?args*}")
+        search_opts = self._search_opts("search")
+        drafts_search_opts = self._search_opts("search_drafts")
+
+        """
+        url_prefix = "/user/search"
+        url_prefix = "/search"
+        """
+
+        links_search = pagination_links("{+api}/search{?args*}")
+        links_search_drafts = pagination_links("{+api}/user/search{?args*}")
+
+
 
         config_class = type(
             "GlobalSearchServiceConfig",
@@ -140,18 +157,24 @@ class GlobalSearchService(InvenioRecordService):
                 "base_permission_policy_cls": GlobalSearchPermissionPolicy,
                 "result_list_cls": GlobalSearchResultList,
                 "record_cls": GlobalSearchRecord,
-                "url_prefix": url_prefix,
+                # "url_prefix": url_prefix,
                 "links_search": links_search,
-                "search": GlobalSearchOptions,
+                "links_search_drafts": links_search_drafts,
+                "search": self.fill_search_opts(GlobalSearchOptions, search_opts),
+                "search_drafts": self.fill_search_opts(GlobalSearchDraftsOptions, drafts_search_opts),
             },
         )
+
         stored_config = config_class()
-        current_config.set(stored_config)
+        # current_config.set(stored_config)
+
         return stored_config
 
+    """
     @config.setter
     def config(self, value):
         pass
+    """
 
     def search_drafts(
         self,
@@ -163,7 +186,8 @@ class GlobalSearchService(InvenioRecordService):
         expand=False,
         **kwargs,
     ):
-        return self.global_search(
+        drafts_search_opts = self._search_opts("search_drafts")
+        result = self.global_search(
             identity,
             params,
             action="search_drafts",
@@ -173,8 +197,11 @@ class GlobalSearchService(InvenioRecordService):
             extra_filter=extra_filter,
             search_preference=search_preference,
             expand=expand,
+            search_opts=self.fill_search_opts(GlobalSearchDraftsOptions, drafts_search_opts),
             **kwargs,
         )
+        result._links_tpl._links = self.config.links_search_drafts
+        return result
 
     def search(
         self,
@@ -258,11 +285,14 @@ class GlobalSearchService(InvenioRecordService):
         *args,
         extra_filter=None,
         search_preference=None,
+        search_opts=None,
         expand=False,
         **kwargs,
     ):
+        """
         current_action.set(action)
         current_config.set(None)
+        """
 
         model_services = self.model_services
 
@@ -325,8 +355,15 @@ class GlobalSearchService(InvenioRecordService):
             combined_query["page"] = params["page"]
         if "size" in params:
             combined_query["size"] = params["size"]
+        if "sort" in params:
+            combined_query["sort"] = params["sort"]
+        else:
+            if "q" in params:
+                combined_query["sort"] = search_opts.sort_default
+            else:
+                combined_query["sort"] = search_opts.sort_default_no_query
 
-        hits = super().search(identity, params=combined_query)
+        hits = super().search(identity, params=combined_query, search_opts=search_opts)
 
         del hits._links_tpl.context["args"][
             "json"  # to get rid of the json arg from url
