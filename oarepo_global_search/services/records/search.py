@@ -4,8 +4,8 @@ from invenio_records_resources.services.records.params import (
 )
 from oarepo_runtime.services.facets.params import GroupedFacetsParam
 from oarepo_runtime.services.search import SearchOptions
-from oarepo_global_search.services.records.params import GlobalSearchStrParam
 
+from oarepo_global_search.services.records.params import GlobalSearchStrParam
 
 
 class GlobalSearchOptions(SearchOptions):
@@ -17,6 +17,7 @@ class GlobalSearchOptions(SearchOptions):
         GroupedFacetsParam,
         GlobalSearchStrParam,
     ]
+
 
 class GlobalSearchDraftsOptions(GlobalSearchOptions):
     """Search drafts options."""

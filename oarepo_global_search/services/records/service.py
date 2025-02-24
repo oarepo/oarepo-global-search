@@ -1,11 +1,12 @@
 import copy
 from functools import cached_property
-from flask import current_app
-from invenio_base.utils import obj_or_import_string
+
 from invenio_records_resources.services import RecordService as InvenioRecordService
 from werkzeug.exceptions import Forbidden
-from .exceptions import InvalidServicesError
+
 from oarepo_global_search.proxies import current_global_search
+
+from .exceptions import InvalidServicesError
 
 
 class NoExecute:
@@ -24,7 +25,6 @@ class GlobalSearchService(InvenioRecordService):
     @property
     def indexer(self):
         return None
-
 
     def search_drafts(
         self,
@@ -93,7 +93,6 @@ class GlobalSearchService(InvenioRecordService):
         service._search = _patched_search
         service.result_list = _patched_result_list
         return service
-
 
     @cached_property
     def patched_services(self):

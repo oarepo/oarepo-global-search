@@ -1,34 +1,36 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-import functools
-import json
-from pathlib import Path
 
-from importlib_metadata import entry_points
+import functools
+from typing import TYPE_CHECKING
+
 from invenio_base.utils import obj_or_import_string
-from invenio_records_resources.proxies import current_service_registry
+from invenio_records_resources.records.systemfields import IndexField
 
 from oarepo_global_search.resources.records.config import (
     GlobalSearchResourceConfig,
 )
 from oarepo_global_search.resources.records.resource import GlobalSearchResource
 from oarepo_global_search.services.records.config import GlobalSearchServiceConfig
-from oarepo_global_search.services.records.search import GlobalSearchOptions, GlobalSearchDraftsOptions
+from oarepo_global_search.services.records.search import (
+    GlobalSearchDraftsOptions,
+    GlobalSearchOptions,
+)
 from oarepo_global_search.services.records.service import GlobalSearchService
 from oarepo_global_search.ui.config import (
     GlobalSearchUIResource,
     GlobalSearchUIResourceConfig,
 )
-from invenio_records_resources.records.systemfields import IndexField
+
 if TYPE_CHECKING:
     from flask import Flask
 
 from functools import cached_property
 
 from deepmerge import always_merger
+
+from oarepo_global_search.proxies import current_global_search
 from oarepo_global_search.services.records.api import GlobalSearchRecord
 from oarepo_global_search.services.records.results import GlobalSearchResultList
-from oarepo_global_search.proxies import current_global_search
 
 
 class OARepoGlobalSearch(object):
@@ -70,7 +72,7 @@ class OARepoGlobalSearch(object):
 
     def init_services(self, app):
         self.service = GlobalSearchService(GlobalSearchServiceConfig())
-        app.extensions["global_search_service"] =self.service
+        app.extensions["global_search_service"] = self.service
 
     def init_resources(self, app):
         """Init resources."""
@@ -80,7 +82,6 @@ class OARepoGlobalSearch(object):
         self.global_search_ui_resource = GlobalSearchUIResource(
             config=GlobalSearchUIResourceConfig()
         )
-
 
     def init_config(self, app):
         app.config.setdefault("INFO_ENDPOINT_COMPONENTS", []).append(
@@ -109,7 +110,6 @@ class OARepoGlobalSearch(object):
                 indices.append(service.draft_cls.index.search_alias)
         return indices
 
-
     def _search_opts_from_search_obj(self, search):
         facets = {}
         sort_options = {}
@@ -134,7 +134,12 @@ class OARepoGlobalSearch(object):
         ret = {}
         for service in current_global_search.service_mapping:
             if hasattr(service.config, config_field):
-                ret = always_merger.merge(ret, self._search_opts_from_search_obj(getattr(service.config, config_field)))
+                ret = always_merger.merge(
+                    ret,
+                    self._search_opts_from_search_obj(
+                        getattr(service.config, config_field)
+                    ),
+                )
         return ret
 
     def _fill_search_opts(self, search_opts_cls, search_opts):
@@ -151,7 +156,9 @@ class OARepoGlobalSearch(object):
 
     @cached_property
     def search_drafts(self):
-        return self._fill_search_opts(GlobalSearchDraftsOptions, self._search_opts("search_drafts"))
+        return self._fill_search_opts(
+            GlobalSearchDraftsOptions, self._search_opts("search_drafts")
+        )
 
 
 def api_finalize_app(app: Flask) -> None:
@@ -164,6 +171,3 @@ def finalize_app(app: Flask) -> None:
     ext = app.extensions["global_search"]
     GlobalSearchRecord.index = IndexField(ext.indices)
     GlobalSearchResultList.services = ext.service_mapping
-
-
-
