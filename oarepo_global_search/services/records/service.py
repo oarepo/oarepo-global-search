@@ -7,10 +7,6 @@ from werkzeug.exceptions import Forbidden
 from .exceptions import InvalidServicesError
 from oarepo_global_search.proxies import current_global_search
 
-"""
-current_action = ContextVar("current_action")
-current_config = ContextVar("current_config")
-"""
 
 class NoExecute:
     def __init__(self, query):
@@ -101,17 +97,18 @@ class GlobalSearchService(InvenioRecordService):
 
     @cached_property
     def patched_services(self):
-        model_services = []
+        patched_services = []
 
         # check if search is possible
         for service in current_global_search.service_mapping:
-            service = self._patch_service(service)
-            model_services.append(service)
+            patched = copy.deepcopy(service)
+            patched = self._patch_service(patched)
+            patched_services.append(patched)
 
-        if not model_services:
+        if not patched_services:
             raise InvalidServicesError
 
-        return model_services
+        return patched_services
 
     def global_search(
         self,
