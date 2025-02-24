@@ -1,10 +1,10 @@
 from invenio_access.permissions import system_identity
 from modelc.proxies import current_service as modelc_service
 from modelc.records.api import ModelcDraft
-
+from oarepo_global_search.proxies import current_global_search
 from oarepo_global_search.services.records.service import GlobalSearchService
 
-def test_description_no_params(app, db, search_clear, custom_fields, identity_simple):
+def test_description_no_params(app, db, search_clear, global_search_service, custom_fields, identity_simple):
     modelc_record0 = modelc_service.create(
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "bbb"}},
@@ -19,12 +19,13 @@ def test_description_no_params(app, db, search_clear, custom_fields, identity_si
     )
     ModelcDraft.index.refresh()
 
-    result_without_query = GlobalSearchService().search_drafts(
+
+    result_without_query = global_search_service.search_drafts(
         system_identity,
         {}
     )
 
-    result_with_query = GlobalSearchService().search_drafts(
+    result_with_query = global_search_service.search_drafts(
         system_identity,
         {"q": "jej"}
     )
@@ -35,7 +36,7 @@ def test_description_no_params(app, db, search_clear, custom_fields, identity_si
 
 
 
-def test_description_search(app, db, search_clear, custom_fields, identity_simple):
+def test_description_search(app, db, search_clear, global_search_service, custom_fields, identity_simple):
     modelc_record0 = modelc_service.create(
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "bbb"}},
@@ -50,7 +51,7 @@ def test_description_search(app, db, search_clear, custom_fields, identity_simpl
     )
     ModelcDraft.index.refresh()
 
-    result = GlobalSearchService().search_drafts(
+    result = global_search_service.search_drafts(
         system_identity,
         {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
