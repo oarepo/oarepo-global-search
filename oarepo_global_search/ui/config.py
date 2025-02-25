@@ -5,6 +5,9 @@ from oarepo_ui.proxies import current_oarepo_ui
 from invenio_records_resources.resources.records.resource import request_search_args
 
 
+no_models_template = "global_search.NoModels"
+
+
 class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
     blueprint_name = "global_search_ui"
     url_prefix = "/search"
@@ -12,7 +15,7 @@ class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
     api_service = "records"
     templates = {
         "search": "global_search.Search",
-        "no-models": "global_search.NoModels",
+        "no-models": no_models_template,
     }
 
     application_id = "global_search"
@@ -40,6 +43,7 @@ class GlobalSearchUIResource(RecordsUIResource):
                 self.get_jinjax_macro(
                     "no-models",
                     identity=g.identity,
+                    default_macro=no_models_template,
                 )
             )
 
@@ -52,6 +56,7 @@ class GlobalSearchUIResource(RecordsUIResource):
                 self.get_jinjax_macro(
                     "no-models",
                     identity=g.identity,
+                    default_macro=no_models_template,
                 )
             )
 
