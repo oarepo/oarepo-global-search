@@ -2,7 +2,10 @@ from flask import current_app
 from werkzeug.local import LocalProxy
 
 current_global_search = LocalProxy(lambda: current_app.extensions["global_search"])
-current_global_search_service = LocalProxy(lambda: current_app.extensions["global_search_service"])
+current_global_search_service = LocalProxy(
+    lambda: current_app.extensions["global_search_service"]
+)
+
 
 def global_search_view_function(*args, **kwargs):
     # this function is called by the invenio_search_ui if user goes to
@@ -11,4 +14,5 @@ def global_search_view_function(*args, **kwargs):
     # we just redirect to global search url (/search/) and let flask
     # handle the rest.
     import flask
+
     return flask.redirect("/search/")

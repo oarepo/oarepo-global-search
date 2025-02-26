@@ -4,7 +4,9 @@ import pytest
 from flask_principal import Identity, Need, UserNeed
 from invenio_app.factory import create_api
 from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
+
 from oarepo_global_search.proxies import current_global_search_service
+
 
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):
@@ -20,6 +22,7 @@ def identity_simple():
     i.provides.add(Need(method="system_role", value="any_user"))
     i.provides.add(Need(method="system_role", value="authenticated_user"))
     return i
+
 
 @pytest.fixture()
 def global_search_service():
@@ -65,4 +68,3 @@ def app_config(app_config):
 @pytest.fixture()
 def custom_fields():
     prepare_cf_indices()
-

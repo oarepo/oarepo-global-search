@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import functools
+import json
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+from importlib_metadata import entry_points
 from invenio_base.utils import obj_or_import_string
+from invenio_records_resources.proxies import current_service_registry
 from invenio_records_resources.records.systemfields import IndexField
 
 from oarepo_global_search.resources.records.config import (
@@ -51,7 +55,6 @@ class OARepoGlobalSearch(object):
         self.init_resources(app)
         app.extensions["global_search"] = self
 
-    """
     # todo what is the point of this?
     @functools.cached_property
     def model_services(self):
@@ -68,16 +71,15 @@ class OARepoGlobalSearch(object):
             if service_id and service_id in current_service_registry._services:
                 ret.append(current_service_registry.get(service_id))
         return ret
-    """
 
     def init_services(self, app):
-        self.service = GlobalSearchService(GlobalSearchServiceConfig())
-        app.extensions["global_search_service"] = self.service
+        self.service_records = GlobalSearchService(GlobalSearchServiceConfig())
+        app.extensions["global_search_service"] = self.service_records
 
     def init_resources(self, app):
         """Init resources."""
         self.global_search_resource = GlobalSearchResource(
-            config=GlobalSearchResourceConfig(), service=self.service
+            config=GlobalSearchResourceConfig(), service=self.service_records
         )
         self.global_search_ui_resource = GlobalSearchUIResource(
             config=GlobalSearchUIResourceConfig()

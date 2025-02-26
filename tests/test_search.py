@@ -5,12 +5,11 @@ from modelb.proxies import current_service as modelb_service
 from modelb.records.api import ModelbRecord
 from modelc.proxies import current_service as modelc_service
 from modelc.records.api import ModelcDraft
-from oarepo_global_search.services.records.service import GlobalSearchService
-from oarepo_global_search.proxies import current_global_search
 
 
-
-def test_description_no_params(app, db, global_search_service, search_clear, custom_fields, identity_simple):
+def test_description_no_params(
+    app, db, global_search_service, search_clear, custom_fields, identity_simple
+):
     modelc_record0 = modelc_service.create(
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "bbb"}},
@@ -25,15 +24,18 @@ def test_description_no_params(app, db, global_search_service, search_clear, cus
     )
     ModelcDraft.index.refresh()
 
-    result = global_search_service.search(
-        system_identity,
-        {"q": "jej"}
-    )
+    result = global_search_service.search(system_identity, {"q": "jej"})
     results = result.to_dict()
     assert len(results["hits"]["hits"]) == 1
-    assert results['links']['self'] == 'http://localhost/search?page=1&q=jej&size=25&sort=bestmatch'
+    assert (
+        results["links"]["self"]
+        == "http://localhost/search?page=1&q=jej&size=25&sort=bestmatch"
+    )
 
-def test_description_search(app, db, search_clear, global_search_service, identity_simple):
+
+def test_description_search(
+    app, db, search_clear, global_search_service, identity_simple
+):
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -136,7 +138,7 @@ def test_second_page(app, db, global_search_service, search_clear, identity_simp
         == "http://localhost/search?page=2&q=blah&size=5&sort=bestmatch"
     )
 
-    result = current_global_search.service.search(
+    result = global_search_service.search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 2, "size": 5, "facets": {}},
     )
@@ -177,7 +179,9 @@ def test_zero_hits(app, db, global_search_service, search_clear, identity_simple
     assert len(results["hits"]["hits"]) == 0
 
 
-def test_multiple_from_one_schema(app, db, global_search_service, search_clear, identity_simple):
+def test_multiple_from_one_schema(
+    app, db, global_search_service, search_clear, identity_simple
+):
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},

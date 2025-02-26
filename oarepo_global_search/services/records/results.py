@@ -1,8 +1,9 @@
+from collections import defaultdict
+
 from invenio_records_resources.services import LinksTemplate
 from invenio_records_resources.services.records.results import (
     RecordList as BaseRecordList,
 )
-from collections import defaultdict
 
 
 class GlobalSearchResultList(BaseRecordList):
