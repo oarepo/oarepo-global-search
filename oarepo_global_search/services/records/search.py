@@ -12,9 +12,8 @@ class GlobalSearchOptions(SearchOptions):
     """Search options."""
 
     params_interpreters_cls = [
-        QueryStrParam,
         PaginationParam,
-        GroupedFacetsParam,
+        #GroupedFacetsParam,
         GlobalSearchStrParam,
     ]
 
