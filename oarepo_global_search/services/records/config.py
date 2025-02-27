@@ -17,11 +17,6 @@ from oarepo_global_search.services.records.results import GlobalSearchResultList
 class GlobalSearchServiceConfig(
     PermissionsPresetsConfigMixin, InvenioRecordServiceConfig
 ):
-    """
-    stored_config = current_config.get(None)
-    if stored_config:
-        return stored_config
-    """
 
     base_permission_policy_cls = GlobalSearchPermissionPolicy
     PERMISSIONS_PRESETS = ["everyone"]
