@@ -99,7 +99,7 @@ class GlobalSearchService(InvenioRecordService):
         patched_services = []
 
         # check if search is possible
-        for service in current_global_search.service_mapping:
+        for service in current_global_search.model_services:
             patched = copy.deepcopy(service)
             patched = self._patch_service(patched)
             patched_services.append(patched)

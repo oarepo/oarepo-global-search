@@ -31,8 +31,6 @@ if TYPE_CHECKING:
 from functools import cached_property
 
 from deepmerge import always_merger
-
-from oarepo_global_search.proxies import current_global_search
 from oarepo_global_search.services.records.api import GlobalSearchRecord
 from oarepo_global_search.services.records.results import GlobalSearchResultList
 
@@ -51,11 +49,10 @@ class OARepoGlobalSearch(object):
     def init_app(self, app):
         """Flask application initialization."""
         self.app = app
-        self.init_services(app)
         self.init_resources(app)
         app.extensions["global_search"] = self
+        app.extensions["global_search_service"] = self.service_records
 
-    # todo what is the point of this?
     @functools.cached_property
     def model_services(self):
         # load all models from json files registered in oarepo.ui entry point
@@ -72,10 +69,6 @@ class OARepoGlobalSearch(object):
                 ret.append(current_service_registry.get(service_id))
         return ret
 
-    def init_services(self, app):
-        self.service_records = GlobalSearchService(GlobalSearchServiceConfig())
-        app.extensions["global_search_service"] = self.service_records
-
     def init_resources(self, app):
         """Init resources."""
         self.global_search_resource = GlobalSearchResource(
@@ -85,27 +78,20 @@ class OARepoGlobalSearch(object):
             config=GlobalSearchUIResourceConfig()
         )
 
+    @functools.cached_property
+    def service_records(self):
+        from oarepo_global_search import config
+        return config.GLOBAL_SEARCH_RECORD_SERVICE_CLASS(config.GLOBAL_SEARCH_RECORD_SERVICE_CONFIG())
+
     def init_config(self, app):
         app.config.setdefault("INFO_ENDPOINT_COMPONENTS", []).append(
             "oarepo_global_search.info:GlobalSearchInfoComponent"
         )
 
     @functools.cached_property
-    def service_mapping(self):
-        service_mapping = []
-        if hasattr(self.app, "config"):
-            for model in self.app.config.get("GLOBAL_SEARCH_MODELS", []):
-                service_def = obj_or_import_string(model["model_service"])
-                service_cfg = obj_or_import_string(model["service_config"])
-                service = service_def(service_cfg())
-                service_mapping.append(service)
-
-        return service_mapping
-
-    @functools.cached_property
     def indices(self):
         indices = []
-        for service in self.service_mapping:
+        for service in self.model_services:
             indices.append(service.record_cls.index.search_alias)
             # if current_action.get("search") == "search_drafts" and getattr( # todo by default we search drafts too and there are other ways to eventually omit them than on index level?
             if getattr(service, "draft_cls", None):
@@ -134,7 +120,7 @@ class OARepoGlobalSearch(object):
 
     def _search_opts(self, config_field):
         ret = {}
-        for service in current_global_search.service_mapping:
+        for service in self.model_services:
             if hasattr(service.config, config_field):
                 ret = always_merger.merge(
                     ret,
@@ -172,4 +158,4 @@ def finalize_app(app: Flask) -> None:
     """Finalize app."""
     ext = app.extensions["global_search"]
     GlobalSearchRecord.index = IndexField(ext.indices)
-    GlobalSearchResultList.services = ext.service_mapping
+    GlobalSearchResultList.services = ext.model_services
