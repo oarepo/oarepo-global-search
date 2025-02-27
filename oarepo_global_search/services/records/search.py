@@ -13,7 +13,6 @@ class GlobalSearchOptions(SearchOptions):
 
     params_interpreters_cls = [
         PaginationParam,
-        #GroupedFacetsParam,
         GlobalSearchStrParam,
     ]
 
