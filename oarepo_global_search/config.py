@@ -1,5 +1,5 @@
-from oarepo_global_search.services.records.service import GlobalSearchService
 from oarepo_global_search.services.records.config import GlobalSearchServiceConfig
+from oarepo_global_search.services.records.service import GlobalSearchService
 
 GLOBAL_SEARCH_RECORD_SERVICE_CONFIG = GlobalSearchServiceConfig
 

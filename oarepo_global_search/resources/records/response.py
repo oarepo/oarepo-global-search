@@ -19,6 +19,7 @@ def resolve_lazy_strings(data):
         return str(data)
     return data
 
+
 class GlobalSearchResponseHandler(ResponseHandler):
     def __init__(self, serializers, headers=None):
         """Constructor."""

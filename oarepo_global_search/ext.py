@@ -14,12 +14,10 @@ from oarepo_global_search.resources.records.config import (
     GlobalSearchResourceConfig,
 )
 from oarepo_global_search.resources.records.resource import GlobalSearchResource
-from oarepo_global_search.services.records.config import GlobalSearchServiceConfig
 from oarepo_global_search.services.records.search import (
     GlobalSearchDraftsOptions,
     GlobalSearchOptions,
 )
-from oarepo_global_search.services.records.service import GlobalSearchService
 from oarepo_global_search.ui.config import (
     GlobalSearchUIResource,
     GlobalSearchUIResourceConfig,
@@ -31,6 +29,7 @@ if TYPE_CHECKING:
 from functools import cached_property
 
 from deepmerge import always_merger
+
 from oarepo_global_search.services.records.api import GlobalSearchRecord
 from oarepo_global_search.services.records.results import GlobalSearchResultList
 
@@ -81,7 +80,10 @@ class OARepoGlobalSearch(object):
     @functools.cached_property
     def service_records(self):
         from oarepo_global_search import config
-        return config.GLOBAL_SEARCH_RECORD_SERVICE_CLASS(config.GLOBAL_SEARCH_RECORD_SERVICE_CONFIG())
+
+        return config.GLOBAL_SEARCH_RECORD_SERVICE_CLASS(
+            config.GLOBAL_SEARCH_RECORD_SERVICE_CONFIG()
+        )
 
     def init_config(self, app):
         app.config.setdefault("INFO_ENDPOINT_COMPONENTS", []).append(
