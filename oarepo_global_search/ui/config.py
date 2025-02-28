@@ -1,9 +1,8 @@
 from flask import current_app, g
 from invenio_base.utils import obj_or_import_string
-from oarepo_ui.resources import RecordsUIResource, RecordsUIResourceConfig
-from oarepo_ui.proxies import current_oarepo_ui
 from invenio_records_resources.resources.records.resource import request_search_args
-
+from oarepo_ui.proxies import current_oarepo_ui
+from oarepo_ui.resources import RecordsUIResource, RecordsUIResourceConfig
 
 no_models_template = "global_search.NoModels"
 

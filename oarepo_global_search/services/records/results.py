@@ -1,8 +1,9 @@
+from collections import defaultdict
+
 from invenio_records_resources.services import LinksTemplate
 from invenio_records_resources.services.records.results import (
     RecordList as BaseRecordList,
 )
-from collections import defaultdict
 
 
 class GlobalSearchResultList(BaseRecordList):
@@ -26,9 +27,8 @@ class GlobalSearchResultList(BaseRecordList):
 
         # get json $schema to service mapping
         schema_to_service = {}
-        for service_dict in self.services:
-            for service, schema in service_dict.items():
-                schema_to_service[schema] = service
+        for service in self.services:
+            schema_to_service[service.record_cls.schema.value] = service
 
         # group hits by schema and log order
         hits_by_schema = defaultdict(list)

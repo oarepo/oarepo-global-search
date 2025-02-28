@@ -17,6 +17,4 @@ class GlobalSearchStrParam(ParamInterpreter):
                 search = search.post_filter(post_filter)
             if params["json"].get("sort"):
                 search = search.sort(params["json"]["sort"][0])
-            if "sort" not in params:
-                params["sort"] = self.config.sort_default_no_query
         return search

@@ -64,6 +64,6 @@ class GlobalSearchResource(Resource, ErrorHandlersMixin):
             params={
                 **resource_requestctx.args,
                 "advanced_query": resource_requestctx.data,
-            }
+            },
         )
         return items.to_dict(), 200

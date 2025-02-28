@@ -3,11 +3,39 @@ from modela.proxies import current_service as modela_service
 from modela.records.api import ModelaRecord
 from modelb.proxies import current_service as modelb_service
 from modelb.records.api import ModelbRecord
+from modelc.proxies import current_service as modelc_service
+from modelc.records.api import ModelcDraft
 
-from oarepo_global_search.services.records.service import GlobalSearchService
+
+def test_description_no_params(
+    app, db, global_search_service, search_clear, custom_fields, identity_simple
+):
+    modelc_record0 = modelc_service.create(
+        system_identity,
+        {"metadata": {"title": "blah", "bdescription": "bbb"}},
+    )
+    modelc_record1 = modelc_service.create(
+        identity_simple,
+        {"metadata": {"title": "blah", "bdescription": "kch"}},
+    )
+    modelc_record2 = modelc_service.create(
+        identity_simple,
+        {"metadata": {"title": "aaaaa", "bdescription": "jej"}},
+    )
+    ModelcDraft.index.refresh()
+
+    result = global_search_service.search(system_identity, {"q": "jej"})
+    results = result.to_dict()
+    assert len(results["hits"]["hits"]) == 1
+    assert (
+        results["links"]["self"]
+        == "http://localhost/search?page=1&q=jej&size=25&sort=bestmatch"
+    )
 
 
-def test_description_search(app, db, search_clear, identity_simple):
+def test_description_search(
+    app, db, search_clear, global_search_service, identity_simple
+):
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -23,7 +51,7 @@ def test_description_search(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().search(
+    result = global_search_service.search(
         system_identity,
         {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
@@ -35,7 +63,7 @@ def test_description_search(app, db, search_clear, identity_simple):
     assert modela_record1.data not in results["hits"]["hits"]
 
 
-def test_basic_search(app, db, search_clear, identity_simple):
+def test_basic_search(app, db, global_search_service, search_clear, identity_simple):
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -51,7 +79,7 @@ def test_basic_search(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().search(
+    result = global_search_service.search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
@@ -64,7 +92,7 @@ def test_basic_search(app, db, search_clear, identity_simple):
     assert modela_record1.data in results["hits"]["hits"]
 
 
-def test_links(app, db, search_clear, identity_simple):
+def test_links(app, db, global_search_service, search_clear, identity_simple):
     modelb_record1 = modelb_service.create(
         system_identity,
         {"metadata": {"title": "blah", "bdescription": "blah"}},
@@ -72,7 +100,7 @@ def test_links(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().search(
+    result = global_search_service.search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 1, "size": 20, "facets": {}},
     )
@@ -87,7 +115,7 @@ def test_links(app, db, search_clear, identity_simple):
     )
 
 
-def test_second_page(app, db, search_clear, identity_simple):
+def test_second_page(app, db, global_search_service, search_clear, identity_simple):
     for r in range(10):
         modelb_service.create(
             system_identity,
@@ -95,7 +123,7 @@ def test_second_page(app, db, search_clear, identity_simple):
         )
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().search(
+    result = global_search_service.search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 1, "size": 5, "facets": {}},
     )
@@ -110,7 +138,7 @@ def test_second_page(app, db, search_clear, identity_simple):
         == "http://localhost/search?page=2&q=blah&size=5&sort=bestmatch"
     )
 
-    result = GlobalSearchService().search(
+    result = global_search_service.search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 2, "size": 5, "facets": {}},
     )
@@ -126,7 +154,7 @@ def test_second_page(app, db, search_clear, identity_simple):
     )
 
 
-def test_zero_hits(app, db, search_clear, identity_simple):
+def test_zero_hits(app, db, global_search_service, search_clear, identity_simple):
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -142,7 +170,7 @@ def test_zero_hits(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().search(
+    result = global_search_service.search(
         system_identity,
         {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
@@ -151,7 +179,9 @@ def test_zero_hits(app, db, search_clear, identity_simple):
     assert len(results["hits"]["hits"]) == 0
 
 
-def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
+def test_multiple_from_one_schema(
+    app, db, global_search_service, search_clear, identity_simple
+):
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "kch"}},
@@ -167,7 +197,7 @@ def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().search(
+    result = global_search_service.search(
         system_identity,
         {"q": "blah", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
@@ -177,7 +207,7 @@ def test_multiple_from_one_schema(app, db, search_clear, identity_simple):
     assert modelb_record1.data not in results["hits"]["hits"]
 
 
-def test_facets(app, db, search_clear, identity_simple):
+def test_facets(app, db, global_search_service, search_clear, identity_simple):
     modela_record1 = modela_service.create(
         system_identity,
         {"metadata": {"title": "blah", "adescription": "1"}},
@@ -194,7 +224,7 @@ def test_facets(app, db, search_clear, identity_simple):
     ModelaRecord.index.refresh()
     ModelbRecord.index.refresh()
 
-    result = GlobalSearchService().search(
+    result = global_search_service.search(
         system_identity,
         {
             "q": "",

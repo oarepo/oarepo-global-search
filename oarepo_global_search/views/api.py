@@ -5,7 +5,6 @@ def create_global_search(app):
     return blueprint
 
 
-
 def init_create_api_blueprint(state):
     """Init app."""
     app = state.app
