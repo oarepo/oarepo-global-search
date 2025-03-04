@@ -33,7 +33,7 @@ def test_description_no_params(
     )
     assert (
         result_without_query.to_dict()["links"]["self"]
-        == "http://localhost/user/search?page=1&size=25&sort=updated-desc"
+        == "http://localhost/user/search?page=1&size=25&sort=newest"
     )
 
 
@@ -77,8 +77,8 @@ def test_search_drafts_with_disabled_services(
     app, db, search_clear, global_search_service, custom_fields, identity_simple
 ):
     for m in app.config['GLOBAL_SEARCH_MODELS']:
-        if m['model_service'] == 'modelc.services.ModelcService':
-            m['read_draft'] = False
+        if m['model_service'] == 'modelc.services.records.service.ModelcService':
+            m['search_drafts'] = False
 
     try:
 
@@ -105,8 +105,8 @@ def test_search_drafts_with_disabled_services(
     
     finally:
         for m in app.config['GLOBAL_SEARCH_MODELS']:
-            if m['model_service'] == 'modelc.services.ModelcService':
-                del m['read_draft']
+            if m['model_service'] == 'modelc.services.records.service.ModelcService':
+                del m['search_drafts']
 
 
     result = global_search_service.search_drafts(

@@ -126,18 +126,20 @@ class GlobalSearchService(InvenioRecordService):
     ):
         model_services = [*self.patched_services]
 
-        for service in list(model_services):
+        for idx in range(len(model_services)-1, -1, -1):
+            service = model_services[idx]
+            
             if hasattr(service, "check_permission"):
                 if not service.check_permission(identity, "search", **kwargs):
-                    del model_services[service]
+                    del model_services[idx]
             else:
-                del model_services[service]
+                del model_services[idx]
 
             for model_settings in current_app.config.get("GLOBAL_SEARCH_MODELS", []):
                 service_name = f"{type(service).__module__}.{type(service).__qualname__}"
                 if service_name == model_settings["model_service"]:
                     if model_settings.get(action, True) is False:
-                        del model_services[service]
+                        del model_services[idx]
                     break
 
         if model_services == {}:
