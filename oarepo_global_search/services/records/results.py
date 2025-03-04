@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from invenio_records_resources.services import LinksTemplate
+from invenio_records_resources.services.base.results import ServiceListResult
 from invenio_records_resources.services.records.results import (
     RecordList as BaseRecordList,
 )
@@ -59,3 +60,26 @@ class GlobalSearchResultList(BaseRecordList):
         # sort the records by the original order
         records.sort(key=lambda x: id_to_order[x["id"]])
         return records
+
+
+class GlobalSearchScanResultList(ServiceListResult):
+
+    def __init__(self, result_lists):
+        self._result_lists = result_lists
+
+    def __iter__(self):
+        """Iterator over the hits."""
+        return self.hits
+
+    @property
+    def total(self):
+        """Get total number of hits."""
+        return None  # return value in invenio specified for scan
+
+    @property
+    def hits(self):
+        for result_list in self._result_lists:
+            yield from result_list.hits
+
+    def to_dict(self):
+        raise RuntimeError("Do not use to_dict() on scan results, iterate through hits instead.")

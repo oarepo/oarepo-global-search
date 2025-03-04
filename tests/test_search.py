@@ -237,3 +237,25 @@ def test_facets(app, db, global_search_service, search_clear, identity_simple):
     results = result.to_dict()
     assert len(results["hits"]["hits"]) == 1
     assert modela_record2.data in results["hits"]["hits"]
+
+
+def test_scan(app, db, global_search_service, search_clear, identity_simple):
+    modela_record1 = modela_service.create(
+        system_identity,
+        {"metadata": {"title": "blah", "adescription": "1"}},
+    )
+    modela_record2 = modela_service.create(
+        system_identity,
+        {"metadata": {"title": "aaaaa", "adescription": "2"}},
+    )
+    modelb_record1 = modelb_service.create(
+        system_identity,
+        {"metadata": {"title": "kkkkkkkkk", "bdescription": "3"}},
+    )
+
+    ModelaRecord.index.refresh()
+    ModelbRecord.index.refresh()
+
+    result = global_search_service.scan(system_identity)
+    results = list(result.hits)
+    assert len(results) == 3

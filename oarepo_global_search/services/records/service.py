@@ -221,6 +221,22 @@ class GlobalSearchService(InvenioRecordService):
 
         return hits
 
+    def scan(
+        self, identity, params=None, search_preference=None, expand=False, **kwargs
+    ):
+        results = []
+        for service in current_global_search.model_services:
+            results.append(
+                service.scan(
+                    identity,
+                    params=params,
+                    search_preference=search_preference,
+                    expand=expand,
+                    **kwargs,
+                )
+            )
+        return self.config.scan_result_list_cls(results)
+
     def add_param_to_links(self, hits, param_name, param_value):
         if param_name not in hits._links_tpl.context["args"]:
             hits._links_tpl.context["args"][param_name] = param_value

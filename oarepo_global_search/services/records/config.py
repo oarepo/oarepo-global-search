@@ -11,7 +11,10 @@ from oarepo_global_search.services.records.api import GlobalSearchRecord
 from oarepo_global_search.services.records.permissions import (
     GlobalSearchPermissionPolicy,
 )
-from oarepo_global_search.services.records.results import GlobalSearchResultList
+from oarepo_global_search.services.records.results import (
+    GlobalSearchResultList,
+    GlobalSearchScanResultList,
+)
 
 
 class GlobalSearchServiceConfig(
@@ -21,6 +24,7 @@ class GlobalSearchServiceConfig(
     base_permission_policy_cls = GlobalSearchPermissionPolicy
     PERMISSIONS_PRESETS = ["everyone"]
     result_list_cls = GlobalSearchResultList
+    scan_result_list_cls = GlobalSearchScanResultList
 
     @property
     def search(self):
