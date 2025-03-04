@@ -23,6 +23,8 @@ BUILDER=.venv-builder/bin/oarepo-compile-model
 if true ; then
     test -d model-a && rm -rf model-a
     test -d model-b && rm -rf model-b
+    test -d model-c && rm -rf model-c
+
     ${BUILDER} tests/modela.yaml --output-directory model-a -vvv
     ${BUILDER} tests/modelb.yaml --output-directory model-b -vvv
     .venv-builder/bin/pip install oarepo-model-builder-drafts
