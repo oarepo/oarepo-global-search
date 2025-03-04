@@ -1,6 +1,7 @@
 import copy
 from functools import cached_property
 
+from flask import current_app
 from invenio_records_resources.services import RecordService as InvenioRecordService
 from werkzeug.exceptions import Forbidden
 
@@ -123,15 +124,22 @@ class GlobalSearchService(InvenioRecordService):
         expand=False,
         **kwargs,
     ):
+        model_services = [*self.patched_services]
 
-        model_services = self.patched_services
-
-        for service in model_services:
+        for service in list(model_services):
             if hasattr(service, "check_permission"):
                 if not service.check_permission(identity, "search", **kwargs):
                     del model_services[service]
             else:
                 del model_services[service]
+
+            for model_settings in current_app.config.get("GLOBAL_SEARCH_MODELS", []):
+                service_name = f"{type(service).__module__}.{type(service).__qualname__}"
+                if service_name == model_settings["model_service"]:
+                    if model_settings.get(action, True) is False:
+                        del model_services[service]
+                    break
+
         if model_services == {}:
             raise Forbidden()
 
