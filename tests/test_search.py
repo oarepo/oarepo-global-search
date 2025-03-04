@@ -257,5 +257,5 @@ def test_scan(app, db, global_search_service, search_clear, identity_simple):
     ModelbRecord.index.refresh()
 
     result = global_search_service.scan(system_identity)
-    results = result.to_dict()
-    assert len(results["hits"]["hits"]) == 3
+    results = list(result.hits)
+    assert len(results) == 3

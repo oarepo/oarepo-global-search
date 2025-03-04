@@ -79,15 +79,7 @@ class GlobalSearchScanResultList(ServiceListResult):
     @property
     def hits(self):
         for result_list in self._result_lists:
-            for hit in result_list.hits:
-                yield hit
+            yield from result_list.hits
 
     def to_dict(self):
-        # "data" property which uses a ServiceSchema to dump the entire object.
-        hits = list(self.hits)
-        return {
-            "hits": {
-                "hits": hits,
-                "total": self.total,
-            }
-        }
+        raise RuntimeError("Do not use to_dict() on scan results, iterate through hits instead.")
