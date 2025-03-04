@@ -33,7 +33,7 @@ def test_description_no_params(
     )
     assert (
         result_without_query.to_dict()["links"]["self"]
-        == "http://localhost/user/search?page=1&size=25&sort=newest"
+        == "http://localhost/user/search?page=1&size=25&sort=updated-desc"
     )
 
 
