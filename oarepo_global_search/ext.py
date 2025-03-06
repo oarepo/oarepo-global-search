@@ -53,6 +53,17 @@ class OARepoGlobalSearch(object):
         app.extensions["global_search_service"] = self.service_records
 
     @functools.cached_property
+    def global_search_model_services(self):
+        ret = []
+        # check if search is possible
+        for model in self.app.config.get("GLOBAL_SEARCH_MODELS", []):
+            _service_cfg = obj_or_import_string(model["service_config"])
+            service_id = _service_cfg.service_id
+            if service_id and service_id in current_service_registry._services:
+                ret.append(current_service_registry.get(service_id))
+        return ret
+
+    @functools.cached_property
     def model_services(self):
         # load all models from json files registered in oarepo.ui entry point
         ret = []
@@ -93,7 +104,7 @@ class OARepoGlobalSearch(object):
     @functools.cached_property
     def indices(self):
         indices = []
-        for service in self.model_services:
+        for service in self.global_search_model_services:
             indices.append(service.record_cls.index.search_alias)
             # if current_action.get("search") == "search_drafts" and getattr( # todo by default we search drafts too and there are other ways to eventually omit them than on index level?
             if getattr(service, "draft_cls", None):
@@ -122,7 +133,7 @@ class OARepoGlobalSearch(object):
 
     def _search_opts(self, config_field):
         ret = {}
-        for service in self.model_services:
+        for service in self.global_search_model_services:
             if hasattr(service.config, config_field):
                 ret = always_merger.merge(
                     ret,
@@ -160,4 +171,4 @@ def finalize_app(app: Flask) -> None:
     """Finalize app."""
     ext = app.extensions["global_search"]
     GlobalSearchRecord.index = IndexField(ext.indices)
-    GlobalSearchResultList.services = ext.model_services
+    GlobalSearchResultList.services = ext.global_search_model_services
