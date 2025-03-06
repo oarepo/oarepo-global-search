@@ -63,22 +63,6 @@ class OARepoGlobalSearch(object):
                 ret.append(current_service_registry.get(service_id))
         return ret
 
-    @functools.cached_property
-    def model_services(self):
-        # load all models from json files registered in oarepo.ui entry point
-        ret = []
-        eps = entry_points(group="oarepo.models")
-
-        for ep in eps:
-            path = Path(obj_or_import_string(ep.module).__file__).parent / ep.attr
-            model = json.loads(path.read_text())
-            service_id = (
-                model.get("model", {}).get("service-config", {}).get("service-id")
-            )
-            if service_id and service_id in current_service_registry._services:
-                ret.append(current_service_registry.get(service_id))
-        return ret
-
     def init_resources(self, app):
         """Init resources."""
         self.global_search_resource = GlobalSearchResource(
