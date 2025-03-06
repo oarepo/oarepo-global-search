@@ -37,3 +37,5 @@ class GlobalSearchServiceConfig(
     record_cls = GlobalSearchRecord
     links_search = pagination_links("{+api}/search{?args*}")
     links_search_drafts = pagination_links("{+api}/user/search{?args*}")
+
+    url_prefix = "/search"

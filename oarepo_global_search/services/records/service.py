@@ -100,7 +100,7 @@ class GlobalSearchService(InvenioRecordService):
         patched_services = []
 
         # check if search is possible
-        for service in current_global_search.model_services:
+        for service in current_global_search.global_search_model_services:
             patched = copy.deepcopy(service)
             patched = self._patch_service(patched)
             patched_services.append(patched)
@@ -126,9 +126,9 @@ class GlobalSearchService(InvenioRecordService):
     ):
         model_services = [*self.patched_services]
 
-        for idx in range(len(model_services)-1, -1, -1):
+        for idx in range(len(model_services) - 1, -1, -1):
             service = model_services[idx]
-            
+
             if hasattr(service, "check_permission"):
                 if not service.check_permission(identity, "search", **kwargs):
                     del model_services[idx]
@@ -136,7 +136,9 @@ class GlobalSearchService(InvenioRecordService):
                 del model_services[idx]
 
             for model_settings in current_app.config.get("GLOBAL_SEARCH_MODELS", []):
-                service_name = f"{type(service).__module__}.{type(service).__qualname__}"
+                service_name = (
+                    f"{type(service).__module__}.{type(service).__qualname__}"
+                )
                 if service_name == model_settings["model_service"]:
                     if model_settings.get(action, True) is False:
                         del model_services[idx]
@@ -225,7 +227,7 @@ class GlobalSearchService(InvenioRecordService):
         self, identity, params=None, search_preference=None, expand=False, **kwargs
     ):
         results = []
-        for service in current_global_search.model_services:
+        for service in current_global_search.global_search_model_services:
             results.append(
                 service.scan(
                     identity,
