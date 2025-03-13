@@ -27,6 +27,7 @@ class GlobalSearchResource(Resource, ErrorHandlersMixin):
             route("POST", routes["list"], self.json_search),
             route("GET", routes["user-list"], self.search_user),
             route("POST", routes["user-list"], self.json_search_user),
+            route("GET", routes["all-list"], self.search_all_records),
         ]
         return url_rules
 
@@ -67,3 +68,10 @@ class GlobalSearchResource(Resource, ErrorHandlersMixin):
             },
         )
         return items.to_dict(), 200
+
+    @request_search_args
+    @response_handler(many=True)
+    def search_all_records(self):
+        items = self.service.search_all_records(g.identity, params=resource_requestctx.args)
+        return items.to_dict(), 200
+
