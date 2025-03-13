@@ -12,6 +12,7 @@ class GlobalSearchResourceConfig(RecordResourceConfig):
     routes = {
         "list": "/search/",
         "user-list": "/user/search/",
+        "all-list": "/all/search/",
     }
     request_search_args = SearchRequestArgsSchema
 

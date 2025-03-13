@@ -77,7 +77,31 @@ class GlobalSearchService(InvenioRecordService):
             search_opts=self.config.search,
             **kwargs,
         )
-
+        
+    def search_all_records(
+        self,
+        identity,
+        params,
+        *args,
+        extra_filter=None,
+        search_preference=None,
+        expand=False,
+        **kwargs,
+    ):
+        return self.global_search(
+            identity,
+            params,
+            action="search_all_records",
+            permission_action="read_all_records",
+            versioning=True,
+            *args,
+            extra_filter=extra_filter,
+            search_preference=search_preference,
+            expand=expand,
+            search_opts=getattr(self.config, "search_all_records", None) or self.config.search_drafts,
+            **kwargs,
+        )
+        
     def _patch_service(self, service):
         # Clone the service and patch its search method
         # to avoid querying OpenSearch and simply return the query.
@@ -152,6 +176,15 @@ class GlobalSearchService(InvenioRecordService):
 
             if action == "search_drafts" and hasattr(service, "search_drafts"):
                 search = service.search_drafts(
+                    identity,
+                    params=copy.deepcopy(params),
+                    search_preference=search_preference,
+                    expand=expand,
+                    extra_filter=extra_filter,
+                    **kwargs,
+                )
+            elif action == "search_all_records" and hasattr(service, "search_all_records"):
+                search = service.search_all_records(
                     identity,
                     params=copy.deepcopy(params),
                     search_preference=search_preference,
