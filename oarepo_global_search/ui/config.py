@@ -33,6 +33,11 @@ class GlobalSearchUIResourceConfig(RecordsUIResourceConfig):
             )
         return default_components
 
+    def search_endpoint_url(self, identity, api_config, overrides={}, **kwargs):
+        api_url = current_app.config.get("GLOBAL_SEARCH_API_URL", None)
+        if api_url:
+            return api_url
+        return super().search_endpoint_url(identity, api_config, overrides, **kwargs)
 
 class GlobalSearchUIResource(RecordsUIResource):
     @request_search_args
