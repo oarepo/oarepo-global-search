@@ -17,11 +17,3 @@ def init_create_api_blueprint(state):
         sregistry.register(
             ext.service_records, service_id=ext.service_records.config.service_id
         )
-
-        # Register indexer
-        if hasattr(ext.service_records, "indexer"):
-            iregistry = app.extensions["invenio-indexer"].registry
-            iregistry.register(
-                ext.service_records.indexer,
-                indexer_id=ext.service_records.config.service_id,
-            )
