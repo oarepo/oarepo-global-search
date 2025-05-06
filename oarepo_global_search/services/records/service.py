@@ -37,7 +37,6 @@ class GlobalSearchService(InvenioRecordService):
         expand=False,
         **kwargs,
     ):
-
         result = self.global_search(
             identity,
             params,
@@ -77,7 +76,7 @@ class GlobalSearchService(InvenioRecordService):
             search_opts=self.config.search,
             **kwargs,
         )
-        
+
     def search_all_records(
         self,
         identity,
@@ -98,10 +97,11 @@ class GlobalSearchService(InvenioRecordService):
             extra_filter=extra_filter,
             search_preference=search_preference,
             expand=expand,
-            search_opts=getattr(self.config, "search_all_records", None) or self.config.search_drafts,
+            search_opts=getattr(self.config, "search_all_records", None)
+            or self.config.search_drafts,
             **kwargs,
         )
-        
+
     def _patch_service(self, service):
         # Clone the service and patch its search method
         # to avoid querying OpenSearch and simply return the query.
@@ -173,7 +173,6 @@ class GlobalSearchService(InvenioRecordService):
 
         queries_list = {}
         for service in model_services:
-
             if action == "search_drafts" and hasattr(service, "search_drafts"):
                 search = service.search_drafts(
                     identity,
@@ -183,7 +182,9 @@ class GlobalSearchService(InvenioRecordService):
                     extra_filter=extra_filter,
                     **kwargs,
                 )
-            elif action == "search_all_records" and hasattr(service, "search_all_records"):
+            elif action == "search_all_records" and hasattr(
+                service, "search_all_records"
+            ):
                 search = service.search_all_records(
                     identity,
                     params=copy.deepcopy(params),
@@ -233,7 +234,7 @@ class GlobalSearchService(InvenioRecordService):
         if "sort" in params:
             combined_query["sort"] = params["sort"]
         else:
-            if "q" in params:
+            if "q" in params and params["q"]:
                 combined_query["sort"] = search_opts.sort_default
             else:
                 combined_query["sort"] = search_opts.sort_default_no_query
