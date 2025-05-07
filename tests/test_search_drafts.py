@@ -23,7 +23,7 @@ def test_description_no_params(
     result_without_query = global_search_service.search_drafts(system_identity, {})
 
     result_with_query = global_search_service.search_drafts(
-        system_identity, {"q": "jej"}
+        identity_simple, {"q": "jej"}
     )
 
     assert len(result_with_query.to_dict()["hits"]["hits"]) == 1
@@ -55,7 +55,7 @@ def test_description_search(
     ModelcDraft.index.refresh()
 
     result = global_search_service.search_drafts(
-        system_identity,
+        identity_simple,
         {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
     results = result.to_dict()
@@ -97,7 +97,7 @@ def test_search_drafts_with_disabled_services(
         ModelcDraft.index.refresh()
 
         result = global_search_service.search_drafts(
-            system_identity,
+            identity_simple,
             {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
         )
         results = result.to_dict()
@@ -110,7 +110,7 @@ def test_search_drafts_with_disabled_services(
 
 
     result = global_search_service.search_drafts(
-        system_identity,
+        identity_simple,
         {"q": "jej", "sort": "bestmatch", "page": 1, "size": 10, "facets": {}},
     )
     results = result.to_dict()
