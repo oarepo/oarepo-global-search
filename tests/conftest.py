@@ -7,6 +7,9 @@ from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
 from oarepo_global_search.proxies import current_global_search_service
 
+pytest_plugins = [
+    "pytest_oarepo.users",
+]
 
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):
@@ -14,14 +17,10 @@ def create_app(instance_path, entry_points):
     return create_api
 
 
-@pytest.fixture(scope="module")
-def identity_simple():
+@pytest.fixture()
+def identity_simple(users):
     """Simple identity fixture."""
-    i = Identity(1)
-    i.provides.add(UserNeed(1))
-    i.provides.add(Need(method="system_role", value="any_user"))
-    i.provides.add(Need(method="system_role", value="authenticated_user"))
-    return i
+    return users[0].identity
 
 
 @pytest.fixture()
